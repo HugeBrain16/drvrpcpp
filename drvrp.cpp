@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <array>
 
+#include "cmd.hpp"
+
 #include "sampgdk.h"
 #include "streamer.hpp"
 
@@ -30,8 +32,8 @@ int main() {
   return 0;
 }
 
-char *RetPname(int playerid, bool underscore) {
-  char name[MAX_PLAYER_NAME];
+char *RetPname(int playerid, bool underscore = false) {
+  char *name = (char*) malloc(MAX_PLAYER_NAME * sizeof(char));
   if(!IsPlayerConnected(playerid)) return name;
   GetPlayerName(playerid, name, sizeof(name));
   if (underscore) for(int i; i < strlen(name); i++) if(name[i] == '_') name[i] = ' ';
@@ -170,7 +172,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerConnect(int playerid) {
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
   char msgBuff[64];
-  sprintf(msgBuff, "%s Has disconnected from the server (%s)", RetPname(playerid, false), DCReason[reason]);
+  sprintf(msgBuff, "%s Has disconnected from the server (%s)", RetPname(playerid), DCReason[reason]);
   return true;
 }
 
@@ -195,7 +197,9 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid, const char *cmdtext) {
-  if(!strcmp(cmdtext, "/rconweapon")) {
+  Cmd cmd(cmdtext);
+
+  if(!strcmp(cmd.name, "rconweapon")) {
     if(!IsPlayerAdmin(playerid)) return false;
     GivePlayerWeapon(playerid, WEAPON_MP5, 64);
     GivePlayerWeapon(playerid, WEAPON_M4, 64);
