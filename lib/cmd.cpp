@@ -35,8 +35,11 @@ Cmd::Cmd(const char *cmdtext, char prefix) {
     args[i] = trimString(args[i]);
   }
 
-  if(args[0][0] == prefix)
-    strcpy(this->name, args[0].c_str());
+  if(args[0][0] == prefix) {
+    for(int i = 1; i < args[0].length(); i++)
+      this->name[i-1] = args[0][i];
+    this->name[args[0].length()-1] = '\0';
+  }
   args.erase(args.begin());
 
   for(int i; i < args.size(); i++)
