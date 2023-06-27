@@ -41,9 +41,21 @@ Cmd::Cmd(const char *cmdtext, char prefix) {
   }
   args.erase(args.begin());
 
-  for (int i = 0; i < args.size(); i++) {
-    if (i < sizeof(this->args) / sizeof(this->args[0])) {
-      this->args[i] = strdup(args[i].c_str());
-    }
+  for (std::string arg : args) {
+    this->args.push_back((char*) arg.c_str());
   }
 }
+
+char* Cmd::join() {
+  char buff[64];
+  char *result = (char*) malloc(256 * sizeof(char));
+  result[0] = '\0';
+
+  for (int i = 0; i < this->args.size(); i++) {
+    sprintf(buff, "%s ", this->args[i]);
+    strcat(result, buff);
+  }
+
+  return result;
+}
+

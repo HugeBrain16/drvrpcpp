@@ -27,11 +27,6 @@ char DCReason[3][16] = {
 
 using namespace Plugins::Streamer;
 
-int main() {
-  printf("[Deathrow Vatos RolePlay]\n");
-  return 0;
-}
-
 char *RetPname(int playerid, bool underscore = false) {
   char *name = (char*) malloc(MAX_PLAYER_NAME * sizeof(char));
   if(!IsPlayerConnected(playerid)) return name;
@@ -198,13 +193,23 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid, const char *cmdtext) {
   Cmd cmd(cmdtext);
+  char *args = cmd.join();
 
   if(!strcmp(cmd.name, "rconweapon")) {
     if(!IsPlayerAdmin(playerid)) return false;
     GivePlayerWeapon(playerid, WEAPON_MP5, 64);
     GivePlayerWeapon(playerid, WEAPON_M4, 64);
     return true;
+  } else if(!strcmp(cmd.name, "money")) {
+    int amount = 0;
+
+    if(!IsPlayerAdmin(playerid)) return false;
+    if(sscanf(args, "%d", &amount) == 1) GivePlayerMoney(playerid, amount);
+    else return SendClientMessage(playerid, -1, "Usage: /money <amount>");
+    return true;
   }
+
+  free(args);
   return false;
 }
 

@@ -1,11 +1,10 @@
-#include <array>
-
-#define MAX_CMD_ARGS 64
+#include <vector>
 
 class Cmd {
 public:
   char name[32];
-  std::array<char*, MAX_CMD_ARGS> args;
+  std::vector<char*> args;
 
   Cmd(const char *cmdtext, char prefix = '/');
+  char *join();
 };
