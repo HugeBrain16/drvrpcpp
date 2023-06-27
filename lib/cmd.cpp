@@ -42,13 +42,13 @@ Cmd::Cmd(const char *cmdtext, char prefix) {
   args.erase(args.begin());
 
   for (std::string arg : args) {
-    this->args.push_back((char*) arg.c_str());
+    this->args.push_back((char *)arg.c_str());
   }
 }
 
-char* Cmd::join() {
+char *Cmd::join() {
   char buff[64];
-  char *result = (char*) malloc(256 * sizeof(char));
+  char *result = (char *)malloc(256 * sizeof(char));
   result[0] = '\0';
 
   for (int i = 0; i < this->args.size(); i++) {
@@ -58,4 +58,3 @@ char* Cmd::join() {
 
   return result;
 }
-
