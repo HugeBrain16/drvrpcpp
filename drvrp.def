@@ -10,3 +10,5 @@ EXPORTS
 	OnPlayerCommandText
   OnPlayerClickMap
   OnVehicleCreated
+  OnDialogResponse
+  OnPlayerSpawn
