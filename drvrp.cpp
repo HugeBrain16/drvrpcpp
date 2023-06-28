@@ -923,6 +923,15 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
     GivePlayerWeapon(playerid, WEAPON_MP5, 64);
     GivePlayerWeapon(playerid, WEAPON_M4, 64);
     return true;
+  } else if (!strcmp(cmd.name, "setskin")) {
+    int skinid = 0;
+    if (!IsPlayerAdmin(playerid))
+      return false;
+    if (sscanf(args, "%d", skinid) == 1)
+      SetPlayerSkin(playerid, skinid);
+    else
+      return SendClientMessage(playerid, -1, "Usage: /setskin <skinid>");
+    return true;
   } else if (!strcmp(cmd.name, "money")) {
     int amount = 0;
 
