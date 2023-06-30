@@ -50,9 +50,9 @@ const int STARTER_SKINS[16] = {1,  2,  3,   4,   5,   6,   7,   8,
                                78, 79, 134, 135, 137, 212, 230, 239};
 
 // message colors
-#define COLOR_ERROR 0xFF0000
-#define COLOR_USAGE 0x4EAEBF
-#define COLOR_INFO 0x707070
+#define COLOR_ERROR 0xFF0000AA
+#define COLOR_USAGE 0x4EAEBFAA
+#define COLOR_INFO 0x707070AA
 
 #define PLAYER_ACCOUNT "scriptfiles/drvrp/player/account/%s.ini"
 #define PLAYER_ACCS "scriptfiles/drvrp/player/accs/%s/%d.ini"
@@ -537,7 +537,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
   char msgBuff[64];
   sprintf(msgBuff, "%s Has disconnected from the server (%s)",
           RetPname(playerid), DCReason[reason]);
-  SendClientMessageToAll(0xFFFF00, msgBuff);
+  SendClientMessageToAll(0xFFFF00AA, msgBuff);
 
   if (!PlayerFlag[playerid].FirstSpawn) {
     float pos[4];
@@ -584,7 +584,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
   if (PlayerFlag[playerid].FirstSpawn) {
     char msg[128];
     sprintf(msg, "%s Has connected to the server", RetPname(playerid));
-    SendClientMessageToAll(0xFFFF00, msg);
+    SendClientMessageToAll(0xFFFF00AA, msg);
     PlayerFlag[playerid].FirstSpawn = false;
 
     if (!PlayerFlag[playerid].NewAccount) {
