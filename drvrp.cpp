@@ -516,7 +516,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerConnect(int playerid) {
   TogglePlayerSpectating(playerid, 1);
 
   char file_account[256];
-  sprintf(file_account, PLAYER_ACCOUNT, RetPname(playerid));
+  char *name = RetPname(playerid);
+  sprintf(file_account, PLAYER_ACCOUNT, name);
 
   if (!fexist(file_account)) {
     ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD,
@@ -530,13 +531,16 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerConnect(int playerid) {
         "This Username Is Registered\nType Your Password In Order To Login",
         "Login", "Leave");
   }
+
+  free(name);
   return true;
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
   char msgBuff[64];
-  sprintf(msgBuff, "%s Has disconnected from the server (%s)",
-          RetPname(playerid), DCReason[reason]);
+  char *name = RetPname(playerid);
+  sprintf(msgBuff, "%s Has disconnected from the server (%s)", name,
+          DCReason[reason]);
   SendClientMessageToAll(0xFFFF00AA, msgBuff);
 
   if (!PlayerFlag[playerid].FirstSpawn) {
@@ -547,7 +551,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
     char date[64];
     char fpath[256];
 
-    sprintf(fpath, PLAYER_ACCOUNT, RetPname(playerid));
+    sprintf(fpath, PLAYER_ACCOUNT, name);
     GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
     GetPlayerFacingAngle(playerid, &pos[3]);
     GetPlayerHealth(playerid, &mainStatus[0]);
@@ -577,19 +581,22 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
         std::to_string(strftime(date, 32, "%d/%m/%Y", ct));
     file.write(ini);
   }
+
+  free(name);
   return true;
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
   if (PlayerFlag[playerid].FirstSpawn) {
     char msg[128];
-    sprintf(msg, "%s Has connected to the server", RetPname(playerid));
+    char *name = RetPname(playerid);
+    sprintf(msg, "%s Has connected to the server", name);
     SendClientMessageToAll(0xFFFF00AA, msg);
     PlayerFlag[playerid].FirstSpawn = false;
 
     if (!PlayerFlag[playerid].NewAccount) {
       char fpath[256];
-      sprintf(fpath, PLAYER_ACCOUNT, RetPname(playerid));
+      sprintf(fpath, PLAYER_ACCOUNT, name);
 
       mINI::INIFile file(fpath);
       mINI::INIStructure ini;
@@ -787,6 +794,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
                             0.25);
     RemoveBuildingForPlayer(playerid, 13028, 720.0156, -462.5234, 16.8594,
                             0.25);
+
+    free(name);
   }
 
   if (PlayerFlag[playerid].NewAccount) {
@@ -830,7 +839,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
   } else {
     float pos[4];
     char fpath[256];
-    sprintf(fpath, PLAYER_ACCOUNT, RetPname(playerid));
+    char *name = RetPname(playerid);
+    sprintf(fpath, PLAYER_ACCOUNT, name);
 
     mINI::INIFile file(fpath);
     mINI::INIStructure ini;
@@ -842,6 +852,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
     SetSpawnInfo(playerid, 0, std::stoi(ini["position"]["skin"]), pos[0],
                  pos[1], pos[2], pos[3], 0, 0, 0, 0, 0, 0);
     SpawnPlayer(playerid);
+
+    free(name);
   }
   return true;
 }
@@ -849,10 +861,12 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
 PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
                                                 int response, int listitem,
                                                 const char *inputtext) {
+  char *name = RetPname(playerid);
+
   switch (dialogid) {
   case DIALOG_LOGIN: {
     char file_account[256];
-    sprintf(file_account, PLAYER_ACCOUNT, RetPname(playerid));
+    sprintf(file_account, PLAYER_ACCOUNT, name);
 
     if (response) {
       mINI::INIFile file(file_account);
@@ -873,7 +887,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
   }
   case DIALOG_REGISTER: {
     char file_account[256];
-    sprintf(file_account, PLAYER_ACCOUNT, RetPname(playerid));
+    sprintf(file_account, PLAYER_ACCOUNT, name);
 
     if (response) {
       if (strlen(inputtext) < 8) {
@@ -909,6 +923,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
     break;
   }
   }
+
+  free(name);
   return true;
 }
 
