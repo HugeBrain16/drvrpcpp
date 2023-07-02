@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <fstream>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -37,8 +36,6 @@ struct T_PlayerJob {
   bool onDuty;
 };
 struct T_PlayerStatus {
-  float health;
-  float armor;
   float hunger;
   float thirst;
   float energy;
@@ -546,8 +543,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
   if (!PlayerFlag[playerid].FirstSpawn) {
     float pos[4];
     float mainStatus[2];
-    time_t c_time;
-    tm *ct;
     char date[64];
     char fpath[256];
 
@@ -556,11 +551,10 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
     GetPlayerFacingAngle(playerid, &pos[3]);
     GetPlayerHealth(playerid, &mainStatus[0]);
     GetPlayerArmour(playerid, &mainStatus[1]);
-    time(&c_time);
-    ct = localtime(&c_time);
 
     mINI::INIFile file(fpath);
     mINI::INIStructure ini;
+    file.read(ini);
     ini["position"]["x"] = std::to_string(pos[0]);
     ini["position"]["y"] = std::to_string(pos[1]);
     ini["position"]["z"] = std::to_string(pos[2]);
@@ -577,8 +571,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
     ini["stats"]["score"] = std::to_string(GetPlayerScore(playerid));
     ini["role"]["admin"] = std::to_string(PlayerFlag[playerid].Admin);
     ini["role"]["helper"] = std::to_string(PlayerFlag[playerid].Helper);
-    ini["account"]["lastLogin"] =
-        std::to_string(strftime(date, 32, "%d/%m/%Y", ct));
     file.write(ini);
   }
 
@@ -605,9 +597,12 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
       SetPlayerScore(playerid, std::stoi(ini["stats"]["score"]));
       SetPlayerHealth(playerid, std::stof(ini["status"]["health"]));
       SetPlayerArmour(playerid, std::stof(ini["status"]["armour"]));
-      PlayerStatus[playerid].hunger = std::stof(ini["status"]["hunger"]);
-      PlayerStatus[playerid].thirst = std::stof(ini["status"]["thirst"]);
-      PlayerStatus[playerid].energy = std::stof(ini["status"]["energy"]);
+      try {
+        PlayerStatus[playerid].hunger = std::stof(ini["status"]["hunger"]);
+        PlayerStatus[playerid].thirst = std::stof(ini["status"]["thirst"]);
+        PlayerStatus[playerid].energy = std::stof(ini["status"]["energy"]);
+      } catch (std::exception) {
+      }
       PlayerFlag[playerid].Admin =
           strcmp(ini["role"]["admin"].c_str(), "false") ? true : false;
       PlayerFlag[playerid].Helper =
@@ -615,9 +610,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
       // NOTE: freeze player for 1 sec here
       SetPlayerInterior(playerid, std::stoi(ini["position"]["int"]));
       SetPlayerVirtualWorld(playerid, std::stoi(ini["position"]["vw"]));
-      sprintf(msg, "Last login: {FFFF00}%s{FFFFFF}",
-              ini["account"]["lastLogin"]);
-      SendClientMessage(playerid, -1, msg);
     }
 
     RemoveBuildingForPlayer(playerid, 1302, 0.0, 0.0, 0.0, 6000.0);
