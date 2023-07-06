@@ -61,7 +61,6 @@ const int STARTER_SKINS[16] = {1,  2,  3,   4,   5,   6,   7,   8,
 #define PLAYER_WEAPON "scriptfiles/drvrp/player/weapon/%s.ini"
 #define PLAYER_PHONE "scriptfiles/drvrp/player/phone/%s.ini"
 #define PLAYER_PHONE_SMS "scriptfiles/drvrp/player/phone/sms/%s.ini"
-#define PLAYER_JOB "scriptfiles/drvrp/player/job/%s.ini"
 
 #define BIZ_ELECTRONIC "scriptfiles/drvrp/server/business/electronic/%d.ini"
 #define BIZ_TOOL "scriptfiles/drvrp/server/business/tool/%d.ini"
@@ -110,6 +109,23 @@ int ftouch(const char *fname) {
   fs.open(fname, std::ios::out);
   fs.close();
   return (int)!fexist(fname);
+}
+
+bool to_bool(const char *string) {
+  return strcmp(string, "false") ? true : false;
+}
+
+bool playerHasJob(int playerid, E_PlayerJob job) {
+  bool res = false;
+
+  for (int i = 0; i < 4; i++) {
+    if (PlayerJob[playerid][i].joined && i != job) {
+      res = true;
+      break;
+    }
+  }
+
+  return res;
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
@@ -571,6 +587,12 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
     ini["stats"]["score"] = std::to_string(GetPlayerScore(playerid));
     ini["role"]["admin"] = std::to_string(PlayerFlag[playerid].Admin);
     ini["role"]["helper"] = std::to_string(PlayerFlag[playerid].Helper);
+    ini["job"]["mechanic"] =
+        std::to_string(PlayerJob[playerid][Mechanic].joined);
+    ini["job"]["gunmaker"] =
+        std::to_string(PlayerJob[playerid][Gunmaker].joined);
+    ini["job"]["trucker"] = std::to_string(PlayerJob[playerid][Trucker].joined);
+    ini["job"]["taxi"] = std::to_string(PlayerJob[playerid][Taxi].joined);
     file.write(ini);
   }
 
@@ -603,10 +625,15 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
         PlayerStatus[playerid].energy = std::stof(ini["status"]["energy"]);
       } catch (std::exception) {
       }
-      PlayerFlag[playerid].Admin =
-          strcmp(ini["role"]["admin"].c_str(), "false") ? true : false;
-      PlayerFlag[playerid].Helper =
-          strcmp(ini["role"]["helper"].c_str(), "false") ? true : false;
+      PlayerFlag[playerid].Admin = to_bool(ini["role"]["admin"].c_str());
+      PlayerFlag[playerid].Helper = to_bool(ini["role"]["helper"].c_str());
+      PlayerJob[playerid][Mechanic].joined =
+          to_bool(ini["job"]["mechanic"].c_str());
+      PlayerJob[playerid][Trucker].joined =
+          to_bool(ini["job"]["trucker"].c_str());
+      PlayerJob[playerid][Gunmaker].joined =
+          to_bool(ini["job"]["gunmaker"].c_str());
+      PlayerJob[playerid][Taxi].joined = to_bool(ini["job"]["taxi"].c_str());
       // NOTE: freeze player for 1 sec here
       SetPlayerInterior(playerid, std::stoi(ini["position"]["int"]));
       SetPlayerVirtualWorld(playerid, std::stoi(ini["position"]["vw"]));
@@ -997,6 +1024,118 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
     } else
       return SendClientMessage(playerid, COLOR_USAGE,
                                "Usage: /noadmin <playerid>");
+  } else if (!strcmp(cmd.name, "job")) {
+    char opt[2][16];
+
+    if (sscanf(args, "%s %s", opt[0], opt[1]) == 2) {
+      if (!strcmp(opt[0], "join")) {
+        if (!strcmp(opt[1], "gunmaker")) {
+          if (!IsPlayerInRangeOfPoint(playerid, 1.5, -757.2897, -133.7420,
+                                      65.8281))
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You're not nearby the job point.");
+          if (GetPlayerScore(playerid) < 3)
+            return SendClientMessage(
+                playerid, COLOR_ERROR,
+                "Error: You need to be level 3 to join this job.");
+          if (PlayerJob[playerid][Gunmaker].joined)
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You already joined job.");
+          if (playerHasJob(playerid, Gunmaker))
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You can't join this job as you "
+                                     "already joined another job.");
+          PlayerJob[playerid][Gunmaker].joined = true;
+          SendClientMessage(playerid, COLOR_INFO, "You're now a Gunmaker!");
+          return true;
+        } else if (!strcmp(opt[1], "mechanic")) {
+          if (!IsPlayerInRangeOfPoint(playerid, 1.5, 2139.5847, -1733.7576,
+                                      17.2891))
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You're not nearby the job point.");
+          if (GetPlayerScore(playerid) < 2)
+            return SendClientMessage(
+                playerid, COLOR_ERROR,
+                "Error: You need to be level 2 to join this job.");
+          if (PlayerJob[playerid][Mechanic].joined)
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You already joined job.");
+          if (playerHasJob(playerid, Mechanic))
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You can't join this job as you "
+                                     "already joined another job.");
+          PlayerJob[playerid][Mechanic].joined = true;
+          SendClientMessage(playerid, COLOR_INFO, "You're now a Mechanic!");
+          return true;
+        } else if (!strcmp(opt[1], "trucker")) {
+          if (!IsPlayerInRangeOfPoint(playerid, 1.5, -49.8569, -269.3626,
+                                      6.6332))
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You're not nearby the job point.");
+          if (GetPlayerScore(playerid) < 2)
+            return SendClientMessage(
+                playerid, COLOR_ERROR,
+                "Error: You need to be level 2 to join this job.");
+          if (PlayerJob[playerid][Trucker].joined)
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You already joined job.");
+          if (playerHasJob(playerid, Trucker))
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You can't join this job as you "
+                                     "already joined another job.");
+          PlayerJob[playerid][Trucker].joined = true;
+          SendClientMessage(playerid, COLOR_INFO, "You're now a Trucker!");
+          return true;
+        } else
+          return SendClientMessage(playerid, COLOR_ERROR,
+                                   "Error: Invalid option.");
+      } else if (!strcmp(opt[0], "quit")) {
+        if (!strcmp(opt[1], "gunmaker")) {
+          if (!IsPlayerInRangeOfPoint(playerid, 1.5, -757.2897, -133.7420,
+                                      65.8281))
+            return SendClientMessage(
+                playerid, COLOR_ERROR,
+                "Error: You're too far away from this job point");
+          if (!PlayerJob[playerid][Gunmaker].joined)
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You're not in this job");
+          PlayerJob[playerid][Gunmaker].joined = false;
+          SendClientMessage(playerid, COLOR_INFO, "You quit from this job");
+          return true;
+        }
+        if (!strcmp(opt[1], "mechanic")) {
+          if (!IsPlayerInRangeOfPoint(playerid, 1.5, 2139.5847, -1733.7576,
+                                      17.2891))
+            return SendClientMessage(
+                playerid, COLOR_ERROR,
+                "Error: You're not near by Mechanic Job Point");
+          if (!PlayerJob[playerid][Mechanic].joined)
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You're not in this job");
+          PlayerJob[playerid][Mechanic].joined = false;
+          SendClientMessage(playerid, COLOR_INFO, "You quit from this job");
+          return true;
+        }
+        if (!strcmp(opt[1], "trucker")) {
+          if (!IsPlayerInRangeOfPoint(playerid, 1.5, -49.8569, -269.3626,
+                                      6.6332))
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You're not near by the Job Point");
+          if (!PlayerJob[playerid][Trucker].joined)
+            return SendClientMessage(playerid, COLOR_ERROR,
+                                     "Error: You're not in this job");
+          PlayerJob[playerid][Trucker].joined = false;
+          SendClientMessage(playerid, COLOR_ERROR, "You quit from this job");
+          return true;
+        } else
+          return SendClientMessage(playerid, COLOR_ERROR,
+                                   "Error: Invalid option.");
+      } else
+        return SendClientMessage(playerid, COLOR_ERROR,
+                                 "Error: Invalid option.");
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE,
+                               "Usage: /job [join | quit] [job name]");
   }
 
   free(args);
