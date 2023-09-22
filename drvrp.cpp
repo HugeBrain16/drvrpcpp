@@ -128,6 +128,35 @@ bool playerHasJob(int playerid, E_PlayerJob job) {
   return res;
 }
 
+void ProxMsg(float radius, int playerid, const char *string, int color) {
+  float pos[3];
+
+  GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
+  for (int i = 0; i < MAX_PLAYERS; i++) {
+    if (IsPlayerInRangeOfPoint(i, radius, pos[0], pos[1], pos[2]))
+      SendClientMessage(i, color, string);
+  }
+}
+
+void ProxSFX(float radius, int playerid, int soundid) {
+  float pos[3];
+
+  GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
+  for (int i = 0; i < MAX_PLAYERS; i++) {
+    if (IsPlayerInRangeOfPoint(i, radius, pos[0], pos[1], pos[2]))
+      PlayerPlaySound(i, soundid, pos[0], pos[1], pos[2]);
+  }
+}
+
+bool isPlayerInSweeper(int playerid) {
+  for (int i = 0; i < Sweeper.size(); i++) {
+    if (GetPlayerVehicleID(playerid) == Sweeper[i])
+      return true;
+  }
+
+  return false;
+}
+
 PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   char gmText[32];
   sprintf(gmText, "DRV-RP %s", VERSION);
@@ -1136,6 +1165,30 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
     } else
       return SendClientMessage(playerid, COLOR_USAGE,
                                "Usage: /job [join | quit] [job name]");
+  } else if (!strcmp(cmd.name, "me")) {
+    char txt[128];
+    char *name;
+
+    if (sscanf(args, "%s", txt) == 1) {
+      name = RetPname(playerid);
+      sprintf(txt, "{D6A4D9}* %s %s", name, txt);
+      ProxMsg(30.0, playerid, txt, -1);
+      free(name);
+      return true;
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE, "Usage: /me [text]");
+  } else if (!strcmp(cmd.name, "do")) {
+    char txt[128];
+    char *name;
+
+    if (sscanf(args, "%s", txt) == 1) {
+      name = RetPname(playerid);
+      sprintf(txt, "{D6A4D9}* %s (( %s ))", txt, name);
+      ProxMsg(30.0, playerid, txt, -1);
+      free(name);
+      return true;
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE, "Usage: /do [text]");
   }
 
   free(args);
