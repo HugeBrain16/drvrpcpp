@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.28)
 project(drvrpcpp)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -23,5 +23,5 @@ add_samp_plugin(drvrp
   streamer.def
   sampgdk.c
   sampgdk.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib/cmd.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/cmd.c
 )

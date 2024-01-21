@@ -7,7 +7,7 @@
 #include <cstring>
 #include <fstream>
 
-#include "cmd.hpp"
+#include "cmd.h"
 #include "grand.h"
 #include "ini.h"
 #include "sampgdk.h"
@@ -18,7 +18,49 @@
 #define MAX_MISSION_CHECKPOINTS 256
 #define MAX_PLAYER_POINTS 256
 #define MAX_RENTVEH 256
+#define MAX_BUSINESS 256
+#define MAX_HOUSE 1024
+#define MAX_PLAYER_BUSINESS 3
+#define MAX_PLAYER_HOUSE 2
 
+enum E_ItemType { ITEM_EMPTY, ITEM_SPRUNK, ITEM_BREAD, ITEM_WATER };
+struct T_Item {
+  char Name[64];
+  E_ItemType Type;
+  int Price;
+};
+struct T_StoreShelf {
+  T_Item Item;
+  int Stock;
+};
+struct T_Store {
+  char Owner[64];
+  char Name[128];
+  float Pos[3];
+  int Price;
+  int World;
+  int Pickup;
+  int Label;
+  int Balance;
+  std::array<T_StoreShelf, 8> Items;
+};
+std::array<T_Store, MAX_BUSINESS> BizStore;
+struct T_ItemSlot {
+  T_Item Item;
+  int Quant;
+};
+std::array<std::array<T_ItemSlot, 8>, MAX_PLAYERS> PlayerInv;
+struct T_Home {
+  char Owner[64];
+  float Pos[3];
+  int Price;
+  int World;
+  int Pickup;
+  int Label;
+  int Locked;
+  std::array<T_ItemSlot, 64> Items;
+};
+std::array<T_Home, MAX_HOUSE> Houses;
 struct T_VWeapon {
   bool Colt;
   bool Deagle;
@@ -113,7 +155,7 @@ struct T_PlayerCheckpoint {
 };
 std::array<T_PlayerStatus, MAX_PLAYERS> PlayerStatus;
 enum E_PlayerJob { Gunmaker, Trucker, Mechanic, Taxi, E_PlayerJob_COUNT };
-enum E_PlayerMission { MSweeper, E_PlayerMission_COUNT };
+enum E_PlayerMission { MSweeper, MMower, E_PlayerMission_COUNT };
 struct T_VehicleIndicator {
   int MainBox;
   int Speed;
@@ -153,7 +195,24 @@ const float MissionCheckpoint[E_PlayerMission_COUNT][MAX_MISSION_CHECKPOINTS]
                                      {1370.7501, -1036.1681, 26.2208},
                                      {1378.7150, -935.6437, 34.1875},
                                      {1336.9396, -927.3497, 35.6945},
-                                     {1324.2096, -864.3158, 39.5781}}};
+                                     {1324.2096, -864.3158, 39.5781}},
+                                    {
+                                        {778.3362, -1261.4713, 13.5700},
+                                        {756.8885, -1261.6589, 13.5594},
+                                        {757.9849, -1299.0842, 13.5625},
+                                        {735.0977, -1300.8339, 13.5719},
+                                        {735.0601, -1261.1869, 13.5578},
+                                        {755.9155, -1261.0476, 13.5582},
+                                        {756.0299, -1220.8523, 13.5534},
+                                        {736.6465, -1220.5408, 13.7910},
+                                        {734.7372, -1259.1790, 13.5568},
+                                        {753.9909, -1259.3231, 13.5559},
+                                        {777.2738, -1261.6250, 13.5687},
+                                        {776.4459, -1219.1373, 13.5469},
+                                        {756.2017, -1219.4774, 13.5469},
+                                        {755.7710, -1257.1257, 13.5636},
+                                        {755.7124, -1298.7551, 13.5625},
+                                    }};
 const float PlayerPoint[E_PlayerPoint_COUNT][MAX_PLAYER_POINTS][3] = {
     {{1562.2598, -2300.6880, 13.5650}, {1926.1271, -1788.2462, 13.3906}}};
 
@@ -173,13 +232,18 @@ const float PlayerPoint[E_PlayerPoint_COUNT][MAX_PLAYER_POINTS][3] = {
 #define PLAYER_PHONE "scriptfiles/drvrp/player/phone/%s.ini"
 #define PLAYER_PHONE_SMS "scriptfiles/drvrp/player/phone/sms/%s.ini"
 
+#define BIZ_STORE "scriptfiles/drvrp/server/business/store/%d.ini"
 #define BIZ_ELECTRONIC "scriptfiles/drvrp/server/business/electronic/%d.ini"
 #define BIZ_TOOL "scriptfiles/drvrp/server/business/tool/%d.ini"
 #define BIZ_CLOTHES "scriptfiles/drvrp/server/business/clothes/%d.ini"
 #define BIZ_RESTAURANT "scriptfiles/drvrp/server/business/restaurant/%d.ini"
 
+#define BD_HOUSE "scriptfiles/drvrp/server/building/house/%d.ini"
+
 #define DIALOG_REGISTER 0
 #define DIALOG_LOGIN 1
+#define DIALOG_INVENTORY 2
+#define DIALOG_STORE 3
 
 #define VTYPE_CAR 1
 #define VTYPE_HEAVY 2
@@ -194,6 +258,9 @@ const float PlayerPoint[E_PlayerPoint_COUNT][MAX_PLAYER_POINTS][3] = {
 #define VTYPE_TRAIN 11
 #define VTYPE_BOAT VTYPE_SEA
 #define VTYPE_BICYCLE VTYPE_BMX
+
+#define WORLD_BUSINESS 1000
+#define WORLD_HOUSE 10000
 
 char DCReason[3][16] = {"Timeout/Crash", "Quit", "Banned/Kicked"};
 
@@ -604,6 +671,382 @@ void SetSweeperToRespawn() {
   }
 }
 
+bool SaveInventory(int playerid) {
+  char buff[128];
+  char *name = RetPname(playerid);
+
+  sprintf(buff, PLAYER_INVENTORY, name);
+  mINI::INIFile file(buff);
+  mINI::INIStructure ini;
+
+  if (fexist(buff))
+    file.read(ini);
+
+  for (int i = 0; i < 8; i++) {
+    sprintf(buff, "slot%d", i);
+    ini[buff]["name"] = PlayerInv[playerid][i].Item.Name;
+    ini[buff]["type"] = std::to_string(PlayerInv[playerid][i].Item.Type);
+    ini[buff]["quant"] = std::to_string(PlayerInv[playerid][i].Quant);
+  }
+
+  file.write(ini);
+  free(name);
+  return true;
+}
+
+bool LoadInventory(int playerid) {
+  char buff[128];
+  char *name = RetPname(playerid);
+
+  sprintf(buff, PLAYER_INVENTORY, name);
+
+  if (!fexist(buff)) {
+    free(name);
+    return false;
+  }
+
+  mINI::INIFile file(buff);
+  mINI::INIStructure ini;
+
+  file.read(ini);
+
+  for (int i = 0; i < 8; i++) {
+    sprintf(buff, "slot%d", i);
+    strcpy(PlayerInv[playerid][i].Item.Name, ini[buff]["name"].c_str());
+    PlayerInv[playerid][i].Item.Type = E_ItemType(std::stoi(ini[buff]["type"]));
+    PlayerInv[playerid][i].Quant = std::stoi(ini[buff]["quant"]);
+  }
+
+  free(name);
+  return true;
+}
+
+void ItemSlotInfo(int playerid, int target, int slot) {
+  char buff[64];
+
+  if (PlayerInv[target][slot].Quant != 0) {
+    sprintf(buff, "[Slot: %d]", slot);
+    SendClientMessage(playerid, 0xFFFF00, buff);
+    sprintf(buff, "%s: %dx", PlayerInv[target][slot].Item.Name,
+            PlayerInv[target][slot].Quant);
+    SendClientMessage(playerid, 0xFFFF00, buff);
+    sprintf(buff, "Type: %d", PlayerInv[target][slot].Item.Type);
+    SendClientMessage(playerid, 0xFFFF00, buff);
+  } else
+    SendClientMessage(playerid, COLOR_INFO, "Slot is empty!");
+}
+
+void EmptyItemSlot(int playerid, int slot) {
+  memset(&PlayerInv[playerid][slot], 0, sizeof(PlayerInv[playerid][slot]));
+}
+
+void EmptyBizSlot(const char *type, int id, int slot) {
+  if (!strcmp(type, "store"))
+    memset(&BizStore[id].Items[slot], 0, sizeof(BizStore[id].Items[slot]));
+}
+
+void UpdateItem(int playerid) {
+  int eslot = -1;
+
+  for (int i = 0; i < 8; i++) {
+    if (PlayerInv[playerid][i].Quant <= 0) {
+      EmptyItemSlot(playerid, i);
+      eslot = i;
+    } else if (eslot > -1) {
+      memcpy(&PlayerInv[playerid][eslot], &PlayerInv[playerid][i],
+             sizeof(PlayerInv[playerid][i]));
+      EmptyItemSlot(playerid, i);
+      eslot = i;
+    }
+  }
+}
+
+void UpdateBizItem(const char *type, int id) {
+  int eslot = -1;
+
+  if (!strcmp(type, "store")) {
+    for (int i = 0; i < 8; i++) {
+      if (BizStore[id].Items[i].Stock <= 0) {
+        EmptyBizSlot(type, id, i);
+        eslot = i;
+      } else if (eslot > -1) {
+        memcpy(&BizStore[id].Items[eslot], &BizStore[id].Items[i],
+               sizeof(BizStore[id].Items[i]));
+        EmptyBizSlot(type, id, i);
+        eslot = i;
+      }
+    }
+  }
+}
+
+void ResetItem(int playerid) {
+  for (int i = 0; i < 8; i++) {
+    EmptyItemSlot(playerid, i);
+  }
+}
+
+void ResetBizItem(const char *type, int id) {
+  for (int i = 0; i < 8; i++) {
+    EmptyBizSlot(type, id, i);
+  }
+}
+
+bool AddItem(int playerid, T_Item item, int quant) {
+  for (int i = 0; i < 8; i++) {
+    if (PlayerInv[playerid][i].Quant == 0) {
+      strcpy(PlayerInv[playerid][i].Item.Name, item.Name);
+      PlayerInv[playerid][i].Item.Type = item.Type;
+      PlayerInv[playerid][i].Quant = quant;
+      break;
+    } else if (!strcmp(PlayerInv[playerid][i].Item.Name, item.Name) &&
+               PlayerInv[playerid][i].Item.Type == item.Type) {
+      PlayerInv[playerid][i].Quant += quant;
+      break;
+    }
+  }
+
+  UpdateItem(playerid);
+  return true;
+}
+
+bool AddBizItem(const char *type, int id, T_Item item, int quant) {
+  if (!strcmp(type, "store")) {
+    for (int i = 0; i < 8; i++) {
+      if (BizStore[id].Items[i].Stock == 0) {
+        strcpy(BizStore[id].Items[i].Item.Name, item.Name);
+        BizStore[id].Items[i].Item.Type = item.Type;
+        BizStore[id].Items[i].Item.Price = item.Price;
+        BizStore[id].Items[i].Stock = quant;
+        break;
+      } else if (!strcmp(BizStore[id].Items[i].Item.Name, item.Name) &&
+                 BizStore[id].Items[i].Item.Type == item.Type) {
+        BizStore[id].Items[i].Stock += quant;
+        break;
+      }
+    }
+
+    UpdateBizItem("store", id);
+    return true;
+  }
+
+  return false;
+}
+
+int GetItemCount(int playerid) {
+  int count = 0;
+
+  for (int i = 0; i < 8; i++) {
+    if (PlayerInv[playerid][i].Quant > 0)
+      count++;
+  }
+
+  return count;
+}
+
+int GetBizItemCount(const char *type, int id) {
+  int count = 0;
+
+  if (!strcmp(type, "store")) {
+    for (int i = 0; i < 8; i++) {
+      if (BizStore[id].Items[i].Stock > 0)
+        count++;
+    }
+  }
+
+  return count;
+}
+
+void RestockStoreBiz(int id) {
+  struct T_Item item;
+
+  strcpy(item.Name, "Bread");
+  item.Type = ITEM_BREAD;
+  item.Price = 2;
+  AddBizItem("store", id, item, 30);
+
+  strcpy(item.Name, "Sprunk");
+  item.Type = ITEM_SPRUNK;
+  item.Price = 3;
+  AddBizItem("store", id, item, 30);
+
+  strcpy(item.Name, "Water");
+  item.Type = ITEM_WATER;
+  item.Price = 1;
+  AddBizItem("store", id, item, 30);
+}
+
+char *GetInvText(int playerid) {
+  char *invText = (char *)malloc(256 * sizeof(char));
+  char buff[64];
+  invText[0] = '\0';
+
+  strcat(invText, "Name\tQuantity\n");
+  for (int i = 0; i < GetItemCount(playerid); i++) {
+    if (PlayerInv[playerid][i].Quant > 0)
+      sprintf(buff, "%s\t%dx\n", PlayerInv[playerid][i].Item.Name,
+              PlayerInv[playerid][i].Quant);
+    strcat(invText, buff);
+  }
+
+  return invText;
+}
+
+bool SaveHouse(int id) {
+  char buff[128];
+
+  sprintf(buff, BD_HOUSE, id);
+  mINI::INIFile file(buff);
+  mINI::INIStructure ini;
+
+  if (fexist(buff))
+    file.read(ini);
+  ini["main"]["owner"] = Houses[id].Owner;
+  ini["main"]["x"] = std::to_string(Houses[id].Pos[0]);
+  ini["main"]["y"] = std::to_string(Houses[id].Pos[1]);
+  ini["main"]["z"] = std::to_string(Houses[id].Pos[2]);
+  ini["main"]["price"] = std::to_string(Houses[id].Price);
+  ini["main"]["world"] = std::to_string(Houses[id].World);
+  ini["main"]["locked"] = std::to_string((int)Houses[id].Locked);
+
+  for (int i = 0; i < 64; i++) {
+    sprintf(buff, "slot%d", i);
+    ini[buff]["name"] = Houses[id].Items[i].Item.Name;
+    ini[buff]["type"] = std::to_string(Houses[id].Items[i].Item.Type);
+    ini[buff]["quant"] = std::to_string(Houses[id].Items[i].Quant);
+  }
+
+  file.write(ini);
+  return true;
+}
+
+bool LoadHouse(int id) {
+  char buff[128];
+
+  sprintf(buff, BD_HOUSE, id);
+  if (!fexist(buff))
+    return false;
+
+  mINI::INIFile file(buff);
+  mINI::INIStructure ini;
+
+  file.read(ini);
+  strcpy(Houses[id].Owner, ini["main"]["owner"].c_str());
+  Houses[id].Pos[0] = std::stof(ini["main"]["x"]);
+  Houses[id].Pos[1] = std::stof(ini["main"]["y"]);
+  Houses[id].Pos[2] = std::stof(ini["main"]["z"]);
+  Houses[id].Price = std::stoi(ini["main"]["price"]);
+  Houses[id].World = std::stoi(ini["main"]["world"]);
+  Houses[id].Locked = (bool)std::stoi(ini["main"]["locked"]);
+
+  for (int i = 0; i < 64; i++) {
+    sprintf(buff, "slot%d", i);
+    strcpy(Houses[id].Items[i].Item.Name, ini[buff]["name"].c_str());
+    Houses[id].Items[i].Item.Type = E_ItemType(std::stoi(ini[buff]["type"]));
+    Houses[id].Items[i].Quant = std::stoi(ini[buff]["quant"]);
+  }
+
+  if (strcmp(Houses[id].Owner, "None")) {
+    sprintf(buff, "{AAAAAA}[ID:%d]\n{FFFFFF}Owner: {FF0000}%s", id,
+            Houses[id].Owner);
+  } else {
+    sprintf(buff, "{AAAAAA}[ID:%d]\n{008000}For Sale $%d", id,
+            Houses[id].Price);
+  }
+
+  Houses[id].Label =
+      TextLabel::Create(buff, 0xFFFFFFAA, Houses[id].Pos[0], Houses[id].Pos[1],
+                        Houses[id].Pos[2], 10.0);
+  Houses[id].Pickup = Pickup::Create(1273, 0, Houses[id].Pos[0],
+                                     Houses[id].Pos[1], Houses[id].Pos[2]);
+
+  return true;
+}
+
+bool SaveBusiness(const char *type, int id) {
+  char buff[128];
+
+  if (!strcmp(type, "store")) {
+    sprintf(buff, BIZ_STORE, id);
+    mINI::INIFile file(buff);
+    mINI::INIStructure ini;
+
+    if (fexist(buff))
+      file.read(ini);
+    ini["main"]["owner"] = BizStore[id].Owner;
+    ini["main"]["name"] = BizStore[id].Name;
+    ini["main"]["x"] = std::to_string(BizStore[id].Pos[0]);
+    ini["main"]["y"] = std::to_string(BizStore[id].Pos[1]);
+    ini["main"]["z"] = std::to_string(BizStore[id].Pos[2]);
+    ini["main"]["price"] = std::to_string(BizStore[id].Price);
+    ini["main"]["world"] = std::to_string(BizStore[id].World);
+    ini["main"]["balance"] = std::to_string(BizStore[id].Balance);
+
+    for (int i = 0; i < 8; i++) {
+      sprintf(buff, "shelf%d", i);
+      ini[buff]["name"] = BizStore[id].Items[i].Item.Name;
+      ini[buff]["type"] = std::to_string(BizStore[id].Items[i].Item.Type);
+      ini[buff]["price"] = std::to_string(BizStore[id].Items[i].Item.Price);
+      ini[buff]["stock"] = std::to_string(BizStore[id].Items[i].Stock);
+    }
+
+    file.write(ini);
+    return true;
+  }
+  return false;
+}
+
+bool LoadBusiness(const char *type, int id) {
+  char buff[128];
+
+  if (!strcmp(type, "store")) {
+    sprintf(buff, BIZ_STORE, id);
+
+    if (!fexist(buff))
+      return false;
+    printf("[BUSINESS][STORE] Loading id: %d ...\n", id);
+    mINI::INIFile file(buff);
+    mINI::INIStructure ini;
+
+    file.read(ini);
+    strcpy(BizStore[id].Owner, ini["main"]["owner"].c_str());
+    strcpy(BizStore[id].Name, ini["main"]["name"].c_str());
+    BizStore[id].Pos[0] = std::stof(ini["main"]["x"]);
+    BizStore[id].Pos[1] = std::stof(ini["main"]["y"]);
+    BizStore[id].Pos[2] = std::stof(ini["main"]["z"]);
+    BizStore[id].Price = std::stoi(ini["main"]["price"]);
+    BizStore[id].World = std::stoi(ini["main"]["world"]);
+    BizStore[id].Balance = std::stoi(ini["main"]["balance"]);
+
+    for (int i = 0; i < 8; i++) {
+      sprintf(buff, "shelf%d", i);
+      strcpy(BizStore[id].Items[i].Item.Name, ini[buff]["name"].c_str());
+      BizStore[id].Items[i].Item.Type =
+          E_ItemType(std::stoi(ini[buff]["type"]));
+      BizStore[id].Items[i].Item.Price = std::stoi(ini[buff]["price"]);
+      BizStore[id].Items[i].Stock = std::stoi(ini[buff]["stock"]);
+    }
+
+    if (strcmp(BizStore[id].Owner, "None")) {
+      sprintf(buff,
+              "{AAAAAA}[ID:%d]\n{FF0000}%s\n{FF0000}Convenience "
+              "Store\n{FFFFFF}Owner: {FF0000}%s",
+              id, BizStore[id].Name, BizStore[id].Owner);
+    } else {
+      sprintf(buff,
+              "{AAAAAA}[ID:%d]\n{FF0000}Convenience Store\n{008000}For "
+              "Sale $%d",
+              id, BizStore[id].Price);
+    }
+
+    BizStore[id].Label =
+        TextLabel::Create(buff, 0xFFFFFFAA, BizStore[id].Pos[0],
+                          BizStore[id].Pos[1], BizStore[id].Pos[2], 10.0);
+    BizStore[id].Pickup = Pickup::Create(
+        1274, 0, BizStore[id].Pos[0], BizStore[id].Pos[1], BizStore[id].Pos[2]);
+  }
+  return false;
+}
+
 void SAMPGDK_CALL TC_SetSweeperToRespawn2(int timerid, void *data) {
   SetSweeperToRespawn();
 }
@@ -668,6 +1111,30 @@ int getPlayerPointCount(E_PlayerPoint point) {
   return count;
 }
 
+int getPlayerHouseCount(int playerid) {
+  char *name = RetPname(playerid);
+  int result = 0;
+
+  for (int i = 0; i < MAX_HOUSE; i++) {
+    if (!strcmp(Houses[i].Owner, name))
+      result++;
+  }
+
+  return result;
+}
+
+int getPlayerBusinessCount(int playerid) {
+  char *name = RetPname(playerid);
+  int result = 0;
+
+  for (int i = 0; i < MAX_BUSINESS; i++) {
+    if (!strcmp(BizStore[i].Owner, name))
+      result++;
+  }
+
+  return result;
+}
+
 float GetVehicleSpeed(int vehicleid) {
   float pos[3];
 
@@ -707,6 +1174,77 @@ void CancelPlayer(int playerid) {
 
   GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
   SetPlayerPos(playerid, pos[0], pos[1], pos[2]);
+}
+
+void SavePlayer(int playerid) {
+  float pos[4];
+  float mainStatus[2];
+  char fpath[256];
+  char *name = RetPname(playerid);
+
+  sprintf(fpath, PLAYER_ACCOUNT, name);
+  GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
+  GetPlayerFacingAngle(playerid, &pos[3]);
+  GetPlayerHealth(playerid, &mainStatus[0]);
+  GetPlayerArmour(playerid, &mainStatus[1]);
+
+  mINI::INIFile file(fpath);
+  mINI::INIStructure ini;
+  file.read(ini);
+  ini["position"]["x"] = std::to_string(pos[0]);
+  ini["position"]["y"] = std::to_string(pos[1]);
+  ini["position"]["z"] = std::to_string(pos[2]);
+  ini["position"]["r"] = std::to_string(pos[3]);
+  ini["position"]["int"] = std::to_string(GetPlayerInterior(playerid));
+  ini["position"]["vw"] = std::to_string(GetPlayerVirtualWorld(playerid));
+  ini["position"]["skin"] = std::to_string(GetPlayerSkin(playerid));
+  ini["status"]["health"] = std::to_string(mainStatus[0]);
+  ini["status"]["armour"] = std::to_string(mainStatus[1]);
+  ini["status"]["hunger"] = std::to_string(PlayerStatus[playerid].hunger);
+  ini["status"]["thrist"] = std::to_string(PlayerStatus[playerid].thirst);
+  ini["status"]["energy"] = std::to_string(PlayerStatus[playerid].energy);
+  ini["stats"]["money"] = std::to_string(GetPlayerMoney(playerid));
+  ini["stats"]["score"] = std::to_string(GetPlayerScore(playerid));
+  ini["role"]["admin"] = std::to_string(PlayerFlag[playerid].Admin);
+  ini["role"]["helper"] = std::to_string(PlayerFlag[playerid].Helper);
+  ini["job"]["mechanic"] = std::to_string(PlayerJob[playerid][Mechanic].joined);
+  ini["job"]["gunmaker"] = std::to_string(PlayerJob[playerid][Gunmaker].joined);
+  ini["job"]["trucker"] = std::to_string(PlayerJob[playerid][Trucker].joined);
+  ini["job"]["taxi"] = std::to_string(PlayerJob[playerid][Taxi].joined);
+  file.write(ini);
+  free(name);
+}
+
+void LoadPlayer(int playerid) {
+  char fpath[256];
+  char *name = RetPname(playerid);
+  sprintf(fpath, PLAYER_ACCOUNT, name);
+
+  mINI::INIFile file(fpath);
+  mINI::INIStructure ini;
+  file.read(ini);
+  GivePlayerMoney(playerid, std::stoi(ini["stats"]["money"]));
+  SetPlayerScore(playerid, std::stoi(ini["stats"]["score"]));
+  SetPlayerHealth(playerid, std::stof(ini["status"]["health"]));
+  SetPlayerArmour(playerid, std::stof(ini["status"]["armour"]));
+  try {
+    PlayerStatus[playerid].hunger = std::stof(ini["status"]["hunger"]);
+    PlayerStatus[playerid].thirst = std::stof(ini["status"]["thirst"]);
+    PlayerStatus[playerid].energy = std::stof(ini["status"]["energy"]);
+  } catch (std::exception) {
+  }
+  PlayerFlag[playerid].Admin = to_bool(ini["role"]["admin"].c_str());
+  PlayerFlag[playerid].Helper = to_bool(ini["role"]["helper"].c_str());
+  PlayerJob[playerid][Mechanic].joined =
+      to_bool(ini["job"]["mechanic"].c_str());
+  PlayerJob[playerid][Trucker].joined = to_bool(ini["job"]["trucker"].c_str());
+  PlayerJob[playerid][Gunmaker].joined =
+      to_bool(ini["job"]["gunmaker"].c_str());
+  PlayerJob[playerid][Taxi].joined = to_bool(ini["job"]["taxi"].c_str());
+  FreezePlayer(playerid, 1000);
+  SetPlayerInterior(playerid, std::stoi(ini["position"]["int"]));
+  SetPlayerVirtualWorld(playerid, std::stoi(ini["position"]["vw"]));
+  free(name);
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
@@ -1094,18 +1632,26 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
 
   char plateBuffer[16];
 
-  for (int i; i < Bus.size(); i++) {
+  for (int i = 0; i < Bus.size(); i++) {
     sprintf(plateBuffer, "BUS-%d", i + 1);
     SetVehicleNumberPlate(Bus[i].ID, plateBuffer);
   }
 
-  for (int i; i < Sweeper.size(); i++) {
+  for (int i = 0; i < Sweeper.size(); i++) {
     sprintf(plateBuffer, "SWEEP-%d", i + 1);
     SetVehicleNumberPlate(Sweeper[i], plateBuffer);
   }
 
-  for (int i; i < Bus.size(); i++)
+  for (int i = 0; i < Bus.size(); i++)
     strcpy(Bus[i].Owner, "None");
+
+  for (int i = 0; i < MAX_BUSINESS; i++) {
+    LoadBusiness("store", i);
+  }
+
+  for (int i = 0; i < MAX_HOUSE; i++) {
+    LoadHouse(i);
+  }
 
   SetTimer(60000, true, TC_UpdateRentTime, nullptr);
   return true;
@@ -1147,43 +1693,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
   SendClientMessageToAll(0xFFFF00AA, msgBuff);
 
   if (!PlayerFlag[playerid].FirstSpawn) {
-    float pos[4];
-    float mainStatus[2];
-    char date[64];
-    char fpath[256];
-
-    sprintf(fpath, PLAYER_ACCOUNT, name);
-    GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
-    GetPlayerFacingAngle(playerid, &pos[3]);
-    GetPlayerHealth(playerid, &mainStatus[0]);
-    GetPlayerArmour(playerid, &mainStatus[1]);
-
-    mINI::INIFile file(fpath);
-    mINI::INIStructure ini;
-    file.read(ini);
-    ini["position"]["x"] = std::to_string(pos[0]);
-    ini["position"]["y"] = std::to_string(pos[1]);
-    ini["position"]["z"] = std::to_string(pos[2]);
-    ini["position"]["r"] = std::to_string(pos[3]);
-    ini["position"]["int"] = std::to_string(GetPlayerInterior(playerid));
-    ini["position"]["vw"] = std::to_string(GetPlayerVirtualWorld(playerid));
-    ini["position"]["skin"] = std::to_string(GetPlayerSkin(playerid));
-    ini["status"]["health"] = std::to_string(mainStatus[0]);
-    ini["status"]["armour"] = std::to_string(mainStatus[1]);
-    ini["status"]["hunger"] = std::to_string(PlayerStatus[playerid].hunger);
-    ini["status"]["thrist"] = std::to_string(PlayerStatus[playerid].thirst);
-    ini["status"]["energy"] = std::to_string(PlayerStatus[playerid].energy);
-    ini["stats"]["money"] = std::to_string(GetPlayerMoney(playerid));
-    ini["stats"]["score"] = std::to_string(GetPlayerScore(playerid));
-    ini["role"]["admin"] = std::to_string(PlayerFlag[playerid].Admin);
-    ini["role"]["helper"] = std::to_string(PlayerFlag[playerid].Helper);
-    ini["job"]["mechanic"] =
-        std::to_string(PlayerJob[playerid][Mechanic].joined);
-    ini["job"]["gunmaker"] =
-        std::to_string(PlayerJob[playerid][Gunmaker].joined);
-    ini["job"]["trucker"] = std::to_string(PlayerJob[playerid][Trucker].joined);
-    ini["job"]["taxi"] = std::to_string(PlayerJob[playerid][Taxi].joined);
-    file.write(ini);
+    SavePlayer(playerid);
+    SaveInventory(playerid);
   }
 
   free(name);
@@ -1199,34 +1710,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
     PlayerFlag[playerid].FirstSpawn = false;
 
     if (!PlayerFlag[playerid].NewAccount) {
-      char fpath[256];
-      sprintf(fpath, PLAYER_ACCOUNT, name);
-
-      mINI::INIFile file(fpath);
-      mINI::INIStructure ini;
-      file.read(ini);
-      GivePlayerMoney(playerid, std::stoi(ini["stats"]["money"]));
-      SetPlayerScore(playerid, std::stoi(ini["stats"]["score"]));
-      SetPlayerHealth(playerid, std::stof(ini["status"]["health"]));
-      SetPlayerArmour(playerid, std::stof(ini["status"]["armour"]));
-      try {
-        PlayerStatus[playerid].hunger = std::stof(ini["status"]["hunger"]);
-        PlayerStatus[playerid].thirst = std::stof(ini["status"]["thirst"]);
-        PlayerStatus[playerid].energy = std::stof(ini["status"]["energy"]);
-      } catch (std::exception) {
-      }
-      PlayerFlag[playerid].Admin = to_bool(ini["role"]["admin"].c_str());
-      PlayerFlag[playerid].Helper = to_bool(ini["role"]["helper"].c_str());
-      PlayerJob[playerid][Mechanic].joined =
-          to_bool(ini["job"]["mechanic"].c_str());
-      PlayerJob[playerid][Trucker].joined =
-          to_bool(ini["job"]["trucker"].c_str());
-      PlayerJob[playerid][Gunmaker].joined =
-          to_bool(ini["job"]["gunmaker"].c_str());
-      PlayerJob[playerid][Taxi].joined = to_bool(ini["job"]["taxi"].c_str());
-      FreezePlayer(playerid, 1000);
-      SetPlayerInterior(playerid, std::stoi(ini["position"]["int"]));
-      SetPlayerVirtualWorld(playerid, std::stoi(ini["position"]["vw"]));
+      LoadPlayer(playerid);
+      LoadInventory(playerid);
     }
 
     RemoveBuildingForPlayer(playerid, 1302, 0.0, 0.0, 0.0, 6000.0);
@@ -1541,6 +2026,22 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
   char *name = RetPname(playerid);
 
   switch (dialogid) {
+  case DIALOG_STORE: {
+    for (int i = 0; i < MAX_BUSINESS; i++) {
+      if (GetPlayerVirtualWorld(playerid) == BizStore[i].World) {
+        if (GetPlayerMoney(playerid) < BizStore[i].Items[listitem].Item.Price)
+          return SendClientMessage(playerid, COLOR_ERROR,
+                                   "ERROR: Not enough money!");
+        AddItem(playerid, BizStore[i].Items[listitem].Item, 1);
+        AddBizItem("store", playerid, BizStore[i].Items[listitem].Item, -1);
+        GivePlayerMoney(playerid, -BizStore[i].Items[listitem].Item.Price);
+      }
+    }
+    break;
+  }
+  case DIALOG_INVENTORY: {
+    break;
+  }
   case DIALOG_LOGIN: {
     char file_account[256];
     sprintf(file_account, PLAYER_ACCOUNT, name);
@@ -1616,8 +2117,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandPerformed(int playerid,
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
                                                    const char *cmdtext) {
-  Cmd cmd(cmdtext);
-  char *args = cmd.join();
+  Cmd cmd = cmdparse(cmdtext);
 
   if (!strcmp(cmd.name, "rconweapon")) {
     if (!IsPlayerAdmin(playerid))
@@ -1629,7 +2129,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
     int skinid = 0;
     if (!IsPlayerAdmin(playerid))
       return false;
-    if (sscanf(args, "%d", &skinid) == 1)
+    if (sscanf(cmd.args, "%d", &skinid) == 1)
       SetPlayerSkin(playerid, skinid);
     else
       return SendClientMessage(playerid, -1, "Usage: /setskin <skinid>");
@@ -1639,7 +2139,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
 
     if (!IsPlayerAdmin(playerid))
       return false;
-    if (sscanf(args, "%d", &amount) == 1)
+    if (sscanf(cmd.args, "%d", &amount) == 1)
       GivePlayerMoney(playerid, amount);
     else
       return SendClientMessage(playerid, -1, "Usage: /money <amount>");
@@ -1656,7 +2156,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
 
     if (!IsPlayerAdmin(playerid))
       return false;
-    if (sscanf(args, "%d", &idx) == 1) {
+    if (sscanf(cmd.args, "%d", &idx) == 1) {
       if (!IsPlayerConnected(playerid))
         return SendClientMessage(playerid, COLOR_ERROR,
                                  "Error: Player is not connected");
@@ -1676,7 +2176,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
 
     if (!IsPlayerAdmin(playerid))
       return false;
-    if (sscanf(args, "%d", &idx) == 1) {
+    if (sscanf(cmd.args, "%d", &idx) == 1) {
       if (!IsPlayerConnected(playerid))
         return SendClientMessage(playerid, COLOR_ERROR,
                                  "Error: Player is not connected");
@@ -1694,7 +2194,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
   } else if (!strcmp(cmd.name, "job")) {
     char opt[2][16];
 
-    if (sscanf(args, "%s %s", opt[0], opt[1]) == 2) {
+    if (sscanf(cmd.args, "%s %s", opt[0], opt[1]) == 2) {
       if (!strcmp(opt[0], "join")) {
         if (!strcmp(opt[1], "gunmaker")) {
           if (!IsPlayerInRangeOfPoint(playerid, 1.5, -757.2897, -133.7420,
@@ -1807,7 +2307,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
     char txt[128];
     char *name;
 
-    if (sscanf(args, "%s", txt) == 1) {
+    if (sscanf(cmd.args, "%s", txt) == 1) {
       name = RetPname(playerid);
       sprintf(txt, "{D6A4D9}* %s %s", name, txt);
       ProxMsg(30.0, playerid, txt, -1);
@@ -1819,7 +2319,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
     char txt[128];
     char *name;
 
-    if (sscanf(args, "%s", txt) == 1) {
+    if (sscanf(cmd.args, "%s", txt) == 1) {
       name = RetPname(playerid);
       sprintf(txt, "{D6A4D9}* %s (( %s ))", txt, name);
       ProxMsg(30.0, playerid, txt, -1);
@@ -1953,9 +2453,324 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
                       "ERROR: You're not near by your rented vehicle!");
     free(name);
     return true;
-  }
+  } else if (!strcmp(cmd.name, "mower")) {
+    for (int i = 0; i < Mower.size(); i++) {
+      if (IsPlayerInVehicle(playerid, Mower[i])) {
+        if (PlayerMission[playerid][MMower].active)
+          return SendClientMessage(playerid, COLOR_ERROR,
+                                   "ERROR: You're already in mower mission!");
+        PlayerMission[playerid][MMower].active = true;
+        SetPlayerCheckpoint(playerid, 778.5635, -1295.9993, 13.5641, 2.0);
+        SendClientMessage(playerid, COLOR_INFO,
+                          "Follow checkpoints to complete the job!");
+        return true;
+      }
+    }
+    return SendClientMessage(playerid, COLOR_ERROR,
+                             "ERROR: You're not in mower!");
+  } else if (!strcmp(cmd.name, "createhouse")) {
+    int price;
+    float pos[3];
+    char buff[256];
 
-  free(args);
+    GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
+    if (sscanf(cmd.args, "%i", &price) == 1) {
+      for (int i = 0; i < MAX_HOUSE; i++) {
+        sprintf(buff, BD_HOUSE, i);
+        if (!fexist(buff)) {
+          strcpy(Houses[i].Owner, "None");
+          Houses[i].Pos[0] = pos[0];
+          Houses[i].Pos[1] = pos[1];
+          Houses[i].Pos[2] = pos[2];
+          Houses[i].Price = price;
+          Houses[i].World = WORLD_HOUSE + i;
+
+          sprintf(buff, "{AAAAAA}[ID:%d]\n{008000}For Sale $%d", i, price);
+          Houses[i].Label =
+              TextLabel::Create(buff, 0xFFFFFFAA, pos[0], pos[1], pos[2], 10.0);
+          Houses[i].Pickup = Pickup::Create(1273, 0, pos[0], pos[1], pos[2]);
+          SaveHouse(i);
+          return SendClientMessage(playerid, COLOR_INFO, "House created!");
+        }
+      }
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE,
+                               "Usage: /createhouse [price]");
+  } else if (!strcmp(cmd.name, "createbiz")) {
+    char opt[16];
+    int price;
+    float pos[3];
+    char buff[256];
+
+    GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
+    if (sscanf(cmd.args, "%s %i", opt, &price) == 2) {
+      if (!strcmp(opt, "store")) {
+        for (int i = 0; i < MAX_BUSINESS; i++) {
+          sprintf(buff, BIZ_STORE, i);
+          if (!fexist(buff)) {
+            strcpy(BizStore[i].Owner, "None");
+            strcpy(BizStore[i].Name, "None");
+            BizStore[i].Pos[0] = pos[0];
+            BizStore[i].Pos[1] = pos[1];
+            BizStore[i].Pos[2] = pos[2];
+            BizStore[i].Price = price;
+            BizStore[i].World = WORLD_BUSINESS + i;
+
+            sprintf(buff,
+                    "{AAAAAA}[ID:%d]\n{FF0000}Convenience "
+                    "Store\n{008000}For "
+                    "Sale $%d",
+                    i, price);
+            BizStore[i].Pickup =
+                Pickup::Create(1274, 0, pos[0], pos[1], pos[2]);
+            BizStore[i].Label = TextLabel::Create(buff, 0xFFFFFFAA, pos[0],
+                                                  pos[1], pos[2], 10.0);
+            RestockStoreBiz(i);
+            SaveBusiness("store", i);
+            return SendClientMessage(playerid, COLOR_INFO, "Business created!");
+          }
+        }
+      } else
+        return SendClientMessage(playerid, COLOR_ERROR,
+                                 "ERROR: Unknown business type!");
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE,
+                               "Usage: /createbiz [type] [price]");
+  } else if (!strcmp(cmd.name, "enter")) {
+    if (IsPlayerInAnyVehicle(playerid))
+      return SendClientMessage(playerid, COLOR_ERROR,
+                               "ERROR: Can't enter while in vehicle!");
+    if (GetPlayerInterior(playerid) != 0 &&
+        GetPlayerVirtualWorld(playerid) != 0)
+      return SendClientMessage(playerid, COLOR_ERROR,
+                               "ERROR: You're already inside a building!");
+
+    for (int i = 0; i < MAX_BUSINESS; i++) {
+      if (IsPlayerInRangeOfPoint(playerid, 1.5, BizStore[i].Pos[0],
+                                 BizStore[i].Pos[1], BizStore[i].Pos[2])) {
+        SetPlayerInterior(playerid, 6);
+        SetPlayerVirtualWorld(playerid, BizStore[i].World);
+        SetPlayerPos(playerid, -26.83, -55.58, 1003.54);
+        return true;
+      }
+    }
+    for (int i = 0; i < MAX_HOUSE; i++) {
+      if (IsPlayerInRangeOfPoint(playerid, 1.5, Houses[i].Pos[0],
+                                 Houses[i].Pos[1], Houses[i].Pos[2])) {
+        if (Houses[i].Locked)
+          return SendClientMessage(playerid, COLOR_ERROR,
+                                   "ERROR: The door is locked!");
+        SetPlayerInterior(playerid, 1);
+        SetPlayerVirtualWorld(playerid, Houses[i].World);
+        SetPlayerPos(playerid, 224.28, 1289.19, 1082.14);
+        return true;
+      }
+    }
+    return true;
+  } else if (!strcmp(cmd.name, "exit")) {
+    if (GetPlayerInterior(playerid) == 0 &&
+        GetPlayerVirtualWorld(playerid) == 0)
+      return SendClientMessage(playerid, COLOR_ERROR,
+                               "ERROR: You're not inside a building!");
+
+    for (int i = 0; i < MAX_BUSINESS; i++) {
+      if (GetPlayerVirtualWorld(playerid) == BizStore[i].World) {
+        SetPlayerInterior(playerid, 0);
+        SetPlayerVirtualWorld(playerid, 0);
+        SetPlayerPos(playerid, BizStore[i].Pos[0], BizStore[i].Pos[1],
+                     BizStore[i].Pos[2]);
+        return true;
+      }
+    }
+
+    for (int i = 0; i < MAX_HOUSE; i++) {
+      if (GetPlayerVirtualWorld(playerid) == Houses[i].World) {
+        if (Houses[i].Locked)
+          return SendClientMessage(playerid, COLOR_ERROR,
+                                   "ERROR: The door is locked!");
+        SetPlayerInterior(playerid, 0);
+        SetPlayerVirtualWorld(playerid, 0);
+        SetPlayerPos(playerid, Houses[i].Pos[0], Houses[i].Pos[1],
+                     Houses[i].Pos[2]);
+        return true;
+      }
+    }
+
+    return true;
+  } else if (!strcmp(cmd.name, "buy")) {
+    char invText[256];
+    char buff[64];
+    invText[0] = '\0';
+
+    strcat(invText, "Name\tPrice\tStock\n");
+
+    for (int i = 0; i < MAX_BUSINESS; i++) {
+      if (GetPlayerVirtualWorld(playerid) == BizStore[i].World) {
+        for (int t = 0; t < GetBizItemCount("store", i); t++) {
+          if (BizStore[i].Items[t].Stock > 0)
+            sprintf(buff, "%s\t$%d\t%dx\n", BizStore[i].Items[t].Item.Name,
+                    BizStore[i].Items[t].Item.Price,
+                    BizStore[i].Items[t].Stock);
+          strcat(invText, buff);
+        }
+
+        ShowPlayerDialog(playerid, DIALOG_STORE, DIALOG_STYLE_TABLIST_HEADERS,
+                         "Store", invText, "Buy", "Close");
+        return true;
+      }
+    }
+  } else if (!strcmp(cmd.name, "inventory") || !strcmp(cmd.name, "inv")) {
+    char *inv = GetInvText(playerid);
+    ShowPlayerDialog(playerid, DIALOG_INVENTORY, DIALOG_STYLE_TABLIST_HEADERS,
+                     "Inventory", inv, "Select", "Close");
+    free(inv);
+    return true;
+  } else if (!strcmp(cmd.name, "buyhouse")) {
+    char buff[128];
+    char *name = RetPname(playerid);
+
+    for (int i = 0; i < MAX_HOUSE; i++) {
+      if (IsPlayerInRangeOfPoint(playerid, 1.5, Houses[i].Pos[0],
+                                 Houses[i].Pos[1], Houses[i].Pos[2])) {
+        if (GetPlayerMoney(playerid) < Houses[i].Price)
+          return SendClientMessage(playerid, COLOR_ERROR,
+                                   "ERROR: Not enough money!");
+        if (strcmp(Houses[i].Owner, "None"))
+          return SendClientMessage(playerid, COLOR_ERROR,
+                                   "ERROR: This house is not for sale!");
+        GivePlayerMoney(playerid, -Houses[i].Price);
+        strcpy(Houses[i].Owner, name);
+        sprintf(buff, "{AAAAAA}[ID:%d]\n{FFFFFF}Owner: {FF0000}%s", i,
+                Houses[i].Owner);
+        TextLabel::UpdateText(Houses[i].Label, 0xFFFFFFAA, buff);
+        free(name);
+        return SendClientMessage(playerid, COLOR_INFO, "House bought!");
+      }
+    }
+
+    free(name);
+    return SendClientMessage(playerid, COLOR_ERROR,
+                             "ERROR: You're not near by any houses!");
+  } else if (!strcmp(cmd.name, "lockhouse")) {
+    char *name = RetPname(playerid);
+
+    for (int i = 0; i < MAX_HOUSE; i++) {
+      if (GetPlayerVirtualWorld(playerid) == 0) {
+        if (IsPlayerInRangeOfPoint(playerid, 1.5, Houses[i].Pos[0],
+                                   Houses[i].Pos[1], Houses[i].Pos[2]) &&
+            !strcmp(Houses[i].Owner, name)) {
+          Houses[i].Locked = !Houses[i].Locked;
+
+          if (Houses[i].Locked)
+            SendClientMessage(playerid, COLOR_INFO,
+                              "The door has been locked!");
+          else
+            SendClientMessage(playerid, COLOR_INFO,
+                              "The door has been unlocked!");
+          free(name);
+          return true;
+        }
+      } else if (GetPlayerVirtualWorld(playerid) == Houses[i].World &&
+                 !strcmp(Houses[i].Owner, name)) {
+        Houses[i].Locked = !Houses[i].Locked;
+
+        if (Houses[i].Locked)
+          SendClientMessage(playerid, COLOR_INFO, "The door has been locked!");
+        else
+          SendClientMessage(playerid, COLOR_INFO,
+                            "The door has been unlocked!");
+        free(name);
+        return true;
+      }
+    }
+
+    free(name);
+    return SendClientMessage(
+        playerid, COLOR_ERROR,
+        "ERROR: You're not nearby or inside of your house!");
+  } else if (!strcmp(cmd.name, "checkslot")) {
+    int target, slot;
+    char buff[64];
+
+    if (!IsPlayerAdmin(playerid))
+      return false;
+
+    if (sscanf(cmd.args, "%d %d", &target, &slot) == 2) {
+      if (slot >= 0 && slot < 8)
+        ItemSlotInfo(playerid, target, slot);
+      else
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Invalid slot!");
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE,
+                               "Usage: /checkslot [playerid] [0-7]");
+
+    return true;
+  } else if (!strcmp(cmd.name, "clearslot")) {
+    int target, slot;
+
+    if (!IsPlayerAdmin(playerid))
+      return false;
+
+    if (sscanf(cmd.args, "%d %d", &target, &slot) == 2) {
+      if (slot >= 0 && slot < 8)
+        EmptyItemSlot(target, slot);
+      else
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Invalid slot!");
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE,
+                               "Usage: /clearslot [playerid] [0-7]");
+
+    return SendClientMessage(playerid, COLOR_INFO, "Slot emptied!");
+  } else if (!strcmp(cmd.name, "agive")) {
+    int target;
+    int amount = 1;
+    char item[64];
+    bool check;
+
+    if (!IsPlayerAdmin(playerid))
+      return false;
+    if (sscanf(cmd.args, "%d %s %d", &target, item, &amount) >= 2) {
+      if (!strcmp(item, "sprunk")) {
+        struct T_Item sprunk;
+        strcpy(sprunk.Name, "Sprunk");
+        sprunk.Type = ITEM_SPRUNK;
+        check = AddItem(target, sprunk, amount);
+      } else if (!strcmp(item, "bread")) {
+        struct T_Item bread;
+        strcpy(bread.Name, "Bread");
+        bread.Type = ITEM_BREAD;
+        check = AddItem(target, bread, amount);
+      } else if (!strcmp(item, "water")) {
+        struct T_Item water;
+        strcpy(water.Name, "Water");
+        water.Type = ITEM_WATER;
+        check = AddItem(target, water, amount);
+      } else
+        return SendClientMessage(playerid, COLOR_ERROR,
+                                 "ERROR: Unknown item name!");
+
+      if (check)
+        return SendClientMessage(playerid, COLOR_INFO, "Item has been given!");
+      else
+        return SendClientMessage(playerid, COLOR_ERROR,
+                                 "ERROR: Failed to give item!");
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE,
+                               "Usage: /agive [playerid] [item] <amount>");
+  } else if (!strcmp(cmd.name, "saveplayer")) {
+    int target;
+
+    if (sscanf(cmd.args, "%d", &target) == 1) {
+      if (!IsPlayerConnected(target))
+        return SendClientMessage(playerid, COLOR_ERROR,
+                                 "ERROR: Player is not connected!");
+      SavePlayer(target);
+      SaveInventory(target);
+      return SendClientMessage(playerid, COLOR_INFO, "Player saved!");
+    } else
+      return SendClientMessage(playerid, COLOR_USAGE,
+                               "Usage: /saveplayer [playerid]");
+  }
   return false;
 }
 
@@ -1997,6 +2812,11 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerStateChange(int playerid, int newstate,
       SetSweeperToRespawn2(2000);
       SendClientMessage(playerid, COLOR_ERROR, "Job canceled!");
       PlayerMission[playerid][MSweeper].active = false;
+    } else if (PlayerMission[playerid][MMower].active) {
+      DisablePlayerCheckpoint(playerid);
+      RemovePlayerFromVehicle(playerid);
+      SendClientMessage(playerid, COLOR_ERROR, "Job canceled!");
+      PlayerMission[playerid][MMower].active = false;
     }
   } else if (oldstate == PLAYER_STATE_ONFOOT &&
              newstate == PLAYER_STATE_DRIVER) {
@@ -2041,6 +2861,21 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerEnterCheckpoint(int playerid) {
     SendClientMessage(playerid, COLOR_INFO, "Job completed! +$15");
     PlayerCheckpoint[playerid][MSweeper].progress = 0;
     SetSweeperToRespawn2(2000);
+  } else if (PlayerMission[playerid][MMower].active) {
+    int progress = PlayerCheckpoint[playerid][MMower].progress;
+
+    if (progress < getCheckpointCount(MMower)) {
+      SetPlayerNextCheckpoint(playerid, MissionCheckpoint[MMower][progress][0],
+                              MissionCheckpoint[MMower][progress][1],
+                              MissionCheckpoint[MMower][progress][2], 2.0);
+      PlayerCheckpoint[playerid][MMower].progress++;
+      return 1;
+    }
+    DisablePlayerCheckpoint(playerid);
+    PlayerMission[playerid][MMower].active = false;
+    RemovePlayerFromVehicle(playerid);
+    GivePlayerMoney(playerid, 5);
+    SendClientMessage(playerid, COLOR_INFO, "Job completed! +$5");
   }
   return 1;
 }
