@@ -272,7 +272,7 @@ char *RetPname(int playerid, bool underscore = false) {
     return name;
   GetPlayerName(playerid, name, MAX_PLAYER_NAME);
   if (underscore)
-    for (int i; i < strlen(name); i++)
+    for (int i = 0; i < strlen(name); i++)
       if (name[i] == '_')
         name[i] = ' ';
   return name;
@@ -2759,6 +2759,9 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
                                "Usage: /agive [playerid] [item] <amount>");
   } else if (!strcmp(cmd.name, "saveplayer")) {
     int target;
+
+    if (!IsPlayerAdmin(playerid))
+      return false;
 
     if (sscanf(cmd.args, "%d", &target) == 1) {
       if (!IsPlayerConnected(target))
