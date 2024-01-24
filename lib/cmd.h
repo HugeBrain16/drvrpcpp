@@ -10,12 +10,12 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_NAME 16
-#define MAX_ARGS 256
+#define MAX_CMD_NAME 16
+#define MAX_CMD_ARGS 256
 
 typedef struct Cmd {
-  char name[MAX_NAME];
-  char args[MAX_ARGS];
+  char name[MAX_CMD_NAME];
+  char args[MAX_CMD_ARGS];
 } Cmd;
 
 char *cmdtrim(const char *string);
