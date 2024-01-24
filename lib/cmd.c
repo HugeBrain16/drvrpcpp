@@ -1,8 +1,8 @@
 #include "cmd.h"
 
 char *cmdtrim(const char *string) {
-  char *result = (char *)malloc((MAX_NAME + MAX_ARGS) * sizeof(char));
-  char *buffer = (char *)malloc((MAX_NAME + MAX_ARGS) * sizeof(char));
+  char *result = (char *)malloc((MAX_CMD_NAME + MAX_CMD_ARGS) * sizeof(char));
+  char *buffer = (char *)malloc((MAX_CMD_NAME + MAX_CMD_ARGS) * sizeof(char));
   result[0] = '\0';
   buffer[0] = '\0';
   bool first = true;
