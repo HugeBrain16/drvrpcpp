@@ -1,0 +1,10 @@
+#ifndef GLOBALS_HPP_INCLUDED
+#define GLOBALS_HPP_INCLUDED
+
+#define VERSION "0.1.0-dev"
+
+#define COLOR_ERROR 0xFF0000AA
+#define COLOR_USAGE 0x4EAEBFAA
+#define COLOR_INFO 0x707070AA
+
+#endif

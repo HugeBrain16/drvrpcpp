@@ -6,9 +6,9 @@ EXPORTS
 	OnGameModeInit
 	OnPlayerConnect
 	OnPlayerDisconnect
-  OnPlayerRequestClass
+    OnPlayerRequestClass
 	OnPlayerCommandText
-  OnPlayerClickMap
-  OnVehicleCreated
-  OnDialogResponse
-  OnPlayerSpawn
+    OnPlayerClickMap
+    OnVehicleCreated
+    OnDialogResponse
+    OnPlayerSpawn
