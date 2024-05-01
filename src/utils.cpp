@@ -10,6 +10,8 @@
 #include "globals.hpp"
 #include "statics.hpp"
 
+GRand Random;
+
 bool fexist(const char *fname) {
   struct stat buffer;
   return (stat(fname, &buffer) == 0);
@@ -133,5 +135,18 @@ void CancelPlayer(int playerid) {
 
   GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
   SetPlayerPos(playerid, pos[0], pos[1], pos[2]);
+}
+
+bool EngineOn(int vehicleid) {
+  int x[7];
+
+  GetVehicleParamsEx(vehicleid, &x[0], &x[1], &x[2], &x[3], &x[4], &x[5], &x[6]);
+  return x[0] && x[0] != VEHICLE_PARAMS_UNSET;
+}
+
+bool SetEngine(int vehicleid, int engine) {
+  int x[7];
+  GetVehicleParamsEx(vehicleid, &x[0], &x[1], &x[2], &x[3], &x[4], &x[5], &x[6]);
+  return SetVehicleParamsEx(vehicleid, engine, x[1], x[2], x[3], x[4], x[5], x[6]);
 }
 

@@ -98,5 +98,6 @@ void ShowVehicleIndicator(int playerid);
 void HideVehicleIndicator(int playerid);
 void LoadPlayer(int playerid);
 void SavePlayer(int playerid);
+bool SpeedLimitOn(int playerid);
 
 #endif

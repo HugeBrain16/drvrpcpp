@@ -41,7 +41,6 @@ struct T_Vehicle {
   char Plate[32];
   float ParkPos[4];
   float LastPos[4];
-  float Health;
   float Fuel;
   bool Lock;
   T_VDamageStatus DamageStatus;

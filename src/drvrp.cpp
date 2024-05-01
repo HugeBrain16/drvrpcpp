@@ -4,7 +4,6 @@
 #include <cstring>
 
 #include "lib/cmd.h"
-#include "lib/grand.h"
 #include "lib/ini.h"
 #include "lib/sampgdk.h"
 #include "lib/streamer.hpp"
@@ -32,6 +31,80 @@ void SAMPGDK_CALL TC_UpdateRentTime(int timerid, void *data) {
         DestroyVehicle(VehicleRent[i].ID);
         strcpy(VehicleRent[i].Owner, "");
         VehicleRent[i].Rented = false;
+      }
+    }
+  }
+}
+
+void SAMPGDK_CALL TC_NoExplodingVeh(int timerid, void *data) {
+  for (int i = 0; i < MAX_VEHICLES; i++) {
+    if (IsVehicleConnected(i)) {
+      if (RetVehicleHealth(i) < 250) {
+        SetVehicleHealth(i, 260);
+        SetEngine(i, 0);
+      }
+    }
+  }
+}
+
+void SAMPGDK_CALL TC_AltPlayerUpdate(int timerid, void *data) {
+  /* less aggressive (low update rate) player update */
+  char txt[128];
+  int vid, pid;
+  bool ispv;
+  int vehicleid;
+
+  for (int playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+    if (IsPlayerConnected(playerid)) {
+      if (IsPlayerInAnyVehicle(playerid)) {
+        vehicleid = GetPlayerVehicleID(playerid);
+        ispv = false;
+
+        for (int x = 0; x < MAX_PLAYERS; x++) {
+          if (ispv)
+            break;
+
+          for (int y = 0; y < MAX_PLAYER_VEHICLE; y++) {
+            if (vehicleid == Player[x].Vehicle[y].ID) {
+              pid = x;
+              vid = y;
+              ispv = true;
+              break;
+            }
+          }
+        }
+
+        sprintf(txt, "Speed: ~r~%.0fKm/h", GetVehicleSpeed(vehicleid));
+        if (!EngineOn(vehicleid))
+          sprintf(txt, "Speed: ~b~%.0fKm/h", GetVehicleSpeed(vehicleid));
+        if (GetVehicleSpeed(vehicleid) >= (Player[playerid].DataState.speedlimit - 1) && SpeedLimitOn(playerid))
+          sprintf(txt, "Speed: ~y~%.0fKm/h", GetVehicleSpeed(vehicleid));
+        PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Speed, txt);
+
+        sprintf(txt, "Health: ~r~%.2f", RetVehicleHealth(vehicleid));
+        if (!EngineOn(vehicleid))
+          sprintf(txt, "Health: ~b~%.2f", RetVehicleHealth(vehicleid));
+        PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Health, txt);
+
+        strcpy(txt, "Fuel: ~r~-");
+        if (ispv)
+          sprintf(txt, "Fuel: ~r~%.1f", Player[pid].Vehicle[vid].Fuel);
+        if (!EngineOn(vehicleid)) {
+          strcpy(txt, "Fuel: ~b~-");
+          if (ispv)
+            sprintf(txt, "Fuel: ~b~%.1f", Player[pid].Vehicle[vid].Fuel);
+        }
+        PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Fuel, txt);
+
+        strcpy(txt, "Temp: ~r~-");
+        if (ispv)
+          sprintf(txt, "Temp: ~r~%.2f", Player[pid].Vehicle[vid].Heat);
+        if (!EngineOn(vehicleid)) {
+          strcpy(txt, "Temp: ~b~-");
+          if (ispv)
+            sprintf(txt, "Temp: ~b~%.2f", Player[pid].Vehicle[vid].Heat);
+        }
+        PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Heat, txt);
       }
     }
   }
@@ -69,7 +142,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
     }
   } 
 
-  // 3d text
   TextLabel::Create("[Gun Parts Crafting Point]", 0xFFFFFFAA, -12.9450, 2350.7974, 24.1406, 30.0);
   TextLabel::Create("[Materials Point]\n/getmaterials to buy 3 materials for {008000}$250", 0xFFF157AA, 613.0717, 1549.8906, 5.0001, 30.0);
   TextLabel::Create("[Gun Maker Point]", 0xFF0000AA, -752.7269, -131.6847, 65.8281, 10.0);
@@ -375,6 +447,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   }
 
   SetTimer(60000, true, TC_UpdateRentTime, nullptr);
+  SetTimer(100, true, TC_AltPlayerUpdate, nullptr);
+  SetTimer(1000, true, TC_NoExplodingVeh, nullptr);
   return true;
 }
 
@@ -737,9 +811,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnVehicleCreated(int vehicleid) {
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
   if (Player[playerid].Flag.NewAccount) {
-    GRand r;
-
-    SetSpawnInfo(playerid, 0, STARTER_SKINS[r.i(16)], 1643.9750, -2332.2830,
+    SetSpawnInfo(playerid, 0, STARTER_SKINS[Random.i(16)], 1643.9750, -2332.2830,
                  13.5469, 0.0455, 0, 0, 0, 0, 0, 0);
     SpawnPlayer(playerid);
   } else {
@@ -1092,36 +1164,11 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerEnterCheckpoint(int playerid) {
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerUpdate(int playerid) {
   if (IsPlayerInAnyVehicle(playerid)) {
-    char txt[128];
-    int id;
-    float ispv;
     int vehicleid = GetPlayerVehicleID(playerid);
 
-    for (int i = 0; i < MAX_PLAYER_VEHICLE; i++) {
-      if (vehicleid == Player[playerid].Vehicle[i].ID) {
-        id = i;
-        ispv = true;
-      }
-    }
-
-    if (GetVehicleSpeed(vehicleid) > Player[playerid].DataState.speedlimit && Player[playerid].DataState.speedlimit > 0) {
+    if (GetVehicleSpeed(vehicleid) > Player[playerid].DataState.speedlimit && SpeedLimitOn(playerid)) {
       SetVehicleSpeed(vehicleid, Player[playerid].DataState.speedlimit);
     }
-
-    sprintf(txt, "Speed: ~r~%.0fKm/h", GetVehicleSpeed(vehicleid));
-    PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Speed, txt);
-    sprintf(txt, "Health: ~r~%.2f", RetVehicleHealth(vehicleid));
-    PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Health, txt);
-    if (ispv)
-      sprintf(txt, "Fuel: ~r~%.1f", Player[playerid].Vehicle[id].Fuel);
-    else
-      sprintf(txt, "Fuel: ~r~-");
-    PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Fuel, txt);
-    if (ispv)
-      sprintf(txt, "Temp: ~r~%.2f", Player[playerid].Vehicle[id].Heat);
-    else
-      sprintf(txt, "Temp: ~r~-");
-    PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Heat, txt);
   }
   return 1;
 }

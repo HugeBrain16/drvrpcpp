@@ -305,3 +305,7 @@ void LoadPlayer(int playerid) {
   free(name);
 }
 
+bool SpeedLimitOn(int playerid) {
+  return Player[playerid].DataState.speedlimit > 0;
+}
+

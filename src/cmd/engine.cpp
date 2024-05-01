@@ -1,49 +1,47 @@
 #include "cmd.hpp"
 
 #include "player.hpp"
+#include "utils.hpp"
 
 bool cmd_engine(int playerid, Cmd cmd) {
   int vehicleid = GetPlayerVehicleID(playerid);
-  int vid, engine, lights, alarm, doors, bonnet, boot, objective;
-  float health;
+  int pid, vid;
+  bool ispv;
 
   if (!IsPlayerInAnyVehicle(playerid))
     return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not in a vehicle!");
   if (GetPlayerState(playerid) != PLAYER_STATE_DRIVER)
     return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not the driver of this vehicle!");
   if (HasNoEngine(GetPlayerVehicleID(playerid)))
-    return SendClientMessage(playerid, COLOR_ERROR, "ERROR: This vehicle has no engine!");
+    return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Vehicle has no engine!");
   
-  for (int i = 0; i < MAX_PLAYER_VEHICLE; i++) {
-    if (Player[playerid].Vehicle[i].ID == vehicleid) {
-      vid = i;
+  for (int x = 0; x < MAX_PLAYERS; x++) {
+    if (ispv)
       break;
+
+    for (int y = 0; y < MAX_PLAYER_VEHICLE; y++) {
+      if (Player[x].Vehicle[y].ID == vehicleid) {
+        pid = x;
+        vid = y;
+        ispv = true;
+        break;
+      }
     }
   }
 
-  GetVehicleHealth(vehicleid, &health);
-  GetVehicleParamsEx(vehicleid, &engine, &lights, &alarm, &doors, &bonnet, &boot, &objective);
-  if (!engine) {
-    if (IsPlayerInVehicle(playerid, Player[playerid].Vehicle[vid].ID) && Player[playerid].Vehicle[vid].Oil <= 0)
-      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: This vehicle has no oil!");
-    if (IsPlayerInVehicle(playerid, Player[playerid].Vehicle[vid].ID) && Player[playerid].Vehicle[vid].Fuel <= 0)
-      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: This vehicle has no fuel!");
-    if (IsPlayerInVehicle(playerid, Player[playerid].Vehicle[vid].ID) && Player[playerid].Vehicle[vid].Battery <= 0)
-      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: This vehicle's battery is dead!");
-    
-    SetVehicleParamsEx(vehicleid, 1, lights, alarm, doors, bonnet, boot, objective);
-  } else {
-    SetVehicleParamsEx(vehicleid, 0, lights, alarm, doors, bonnet, boot, objective);
-  }
-  if (engine == VEHICLE_PARAMS_UNSET) {
-    if (IsPlayerInVehicle(playerid, Player[playerid].Vehicle[vid].ID) && Player[playerid].Vehicle[vid].Oil <= 0)
-      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: This vehicle has no oil!");
-    if (IsPlayerInVehicle(playerid, Player[playerid].Vehicle[vid].ID) && Player[playerid].Vehicle[vid].Fuel <= 0)
-      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: This vehicle has no fuel!");
-    if (IsPlayerInVehicle(playerid, Player[playerid].Vehicle[vid].ID) && Player[playerid].Vehicle[vid].Battery <= 0)
-      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: This vehicle's battery is dead!");
-    
-    SetVehicleParamsEx(vehicleid, 1, lights, alarm, doors, bonnet, boot, objective);
-  }
-  return true;
+  if (!EngineOn(vehicleid)) {
+    if (RetVehicleHealth(vehicleid) <= 260)
+      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Engine is too damaged!");
+
+    if (ispv) {
+      if (IsPlayerInVehicle(playerid, Player[pid].Vehicle[vid].ID) && Player[pid].Vehicle[vid].Oil <= 0)
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Vehicle has no oil!");
+      if (IsPlayerInVehicle(playerid, Player[pid].Vehicle[vid].ID) && Player[pid].Vehicle[vid].Fuel <= 0)
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Vehicle has no fuel!");
+      if (IsPlayerInVehicle(playerid, Player[pid].Vehicle[vid].ID) && Player[pid].Vehicle[vid].Battery <= 0)
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Vehicle's battery is dead!");
+    }
+
+    return SetEngine(vehicleid, 1);
+  } else return SetEngine(vehicleid, 0);
 }
