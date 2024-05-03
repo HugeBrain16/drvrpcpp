@@ -70,7 +70,7 @@ struct T_Player {
   T_DataState DataState;
   T_PlayerFlag Flag;
   T_PlayerVehicleIndicator VehicleIndicator;
-  std::array<T_ItemSlot, 8> Inventory;
+  std::array<T_ItemSlot, MAX_PLAYER_INVENTORY> Inventory;
   std::array<T_Vehicle, MAX_PLAYER_VEHICLE> Vehicle;
   std::array<T_PlayerJob, E_PlayerJob_COUNT> Job;
   std::array<T_PlayerMission, E_PlayerMission_COUNT> Mission;

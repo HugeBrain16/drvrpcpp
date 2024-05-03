@@ -287,7 +287,7 @@ int GetBizItemCount(const char *type, int id) {
   int count = 0;
 
   if (!strcmp(type, "store")) {
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < MAX_STORE_INVENTORY; i++) {
       if (Stores[id].Items[i].Quant > 0)
         count++;
     }
@@ -300,7 +300,7 @@ int GetHouseItemCount(int id) {
   int count = 0;
 
   for (int x = 0; x < MAX_HOUSE; x++) {
-    for (int y = 0; y < 64; y++) {
+    for (int y = 0; y < MAX_HOUSE_INVENTORY; y++) {
       if (Houses[x].Items[y].Quant > 0)
         count++;
     }

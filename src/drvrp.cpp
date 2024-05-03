@@ -8,6 +8,7 @@
 #include "lib/sampgdk.h"
 #include "lib/streamer.hpp"
 #include "lib/stuff.hpp"
+#include "lib/sha256.h"
 
 #include "limits.hpp"
 #include "utils.hpp"
@@ -914,6 +915,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
   }
   case DIALOG_LOGIN: {
     char file_account[256];
+    SHA256 sha256;
+
     sprintf(file_account, PLAYER_ACCOUNT, name);
 
     if (response) {
@@ -921,7 +924,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
       mINI::INIStructure ini;
       file.read(ini);
 
-      if (!strcmp(ini["account"]["password"].c_str(), inputtext)) {
+      if (!strcmp(ini["account"]["password"].c_str(), sha256(inputtext).c_str())) {
         TogglePlayerSpectating(playerid, 0);
         SetPlayerColor(playerid, 0xFFFFFFFF);
         Player[playerid].Flag.FirstSpawn = true;
@@ -935,6 +938,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
   }
   case DIALOG_REGISTER: {
     char file_account[256];
+    SHA256 sha256;
+
     sprintf(file_account, PLAYER_ACCOUNT, name);
 
     if (response) {
@@ -955,7 +960,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
       } else {
         mINI::INIFile file(file_account);
         mINI::INIStructure ini;
-        ini["account"]["password"] = inputtext;
+        ini["account"]["password"] = sha256(inputtext).c_str();
         if (file.write(ini)) {
           SendClientMessage(playerid, -1,
                             "{FFFF00}[DATABASE]{FFFFFF} Your account has been "

@@ -3,8 +3,10 @@
 #include "player.hpp"
 
 bool cmd_inventory(int playerid, Cmd cmd) {
+  char title[16];
   char *inv = GetInvText(playerid);
-  ShowPlayerDialog(playerid, DIALOG_INVENTORY, DIALOG_STYLE_TABLIST_HEADERS, "Inventory", inv, "Select", "Close");
+  sprintf(title, "Inventory (%d/%d)", GetItemCount(playerid), MAX_PLAYER_INVENTORY);
+  ShowPlayerDialog(playerid, DIALOG_INVENTORY, DIALOG_STYLE_TABLIST_HEADERS, title, inv, "Select", "Close");
   free(inv);
   return true;
 }

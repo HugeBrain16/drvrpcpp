@@ -33,6 +33,8 @@ add_samp_plugin(drvrp
   ${SRC}/lib/streamer.def
   ${SRC}/lib/sampgdk.c
   ${SRC}/lib/sampgdk.h
+  ${SRC}/lib/sha256.h
+  ${SRC}/lib/sha256.cpp
   
   ${SRC}/lib/cmd.c
   ${SRC}/lib/stuff.cpp

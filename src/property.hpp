@@ -18,7 +18,7 @@ struct T_Store {
   int Pickup;
   int Label;
   int Balance;
-  std::array<T_ItemSlot, 8> Items;
+  std::array<T_ItemSlot, MAX_STORE_INVENTORY> Items;
 };
 
 struct T_Home {
@@ -29,7 +29,7 @@ struct T_Home {
   int Pickup;
   int Label;
   int Locked;
-  std::array<T_ItemSlot, 64> Items;
+  std::array<T_ItemSlot, MAX_HOUSE_INVENTORY> Items;
 };
 
 extern std::array<T_Home, MAX_HOUSE> Houses;

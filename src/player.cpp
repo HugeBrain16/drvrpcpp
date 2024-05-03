@@ -150,7 +150,7 @@ bool AddItem(int playerid, T_Item item, int quant) {
 int GetItemCount(int playerid) {
   int count = 0;
 
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < MAX_PLAYER_INVENTORY; i++) {
     if (Player[playerid].Inventory[i].Quant > 0)
       count++;
   }
