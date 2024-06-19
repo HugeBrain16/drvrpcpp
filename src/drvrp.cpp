@@ -1,6 +1,6 @@
 #include <unistd.h>
 
-#include <cstdio>
+#include <iostream>
 #include <cstring>
 
 #include "lib/cmd.h"
@@ -54,17 +54,18 @@ void SAMPGDK_CALL TC_AltPlayerUpdate(int timerid, void *data) {
   int vid, pid;
   bool ispv;
   int vehicleid;
+  float vSpeed, vHealth;
+  T_Vehicle *veh;
 
   for (int playerid = 0; playerid < MAX_PLAYERS; playerid++) {
     if (IsPlayerConnected(playerid)) {
       if (IsPlayerInAnyVehicle(playerid)) {
         vehicleid = GetPlayerVehicleID(playerid);
+        vSpeed = GetVehicleSpeed(vehicleid);
+        vHealth = RetVehicleHealth(vehicleid);
         ispv = false;
 
-        for (int x = 0; x < MAX_PLAYERS; x++) {
-          if (ispv)
-            break;
-
+        for (int x = 0; x < MAX_PLAYERS && !ispv; x++) {
           for (int y = 0; y < MAX_PLAYER_VEHICLE; y++) {
             if (vehicleid == Player[x].Vehicle[y].ID) {
               pid = x;
@@ -75,36 +76,51 @@ void SAMPGDK_CALL TC_AltPlayerUpdate(int timerid, void *data) {
           }
         }
 
-        sprintf(txt, "Speed: ~r~%.0fKm/h", GetVehicleSpeed(vehicleid));
+        veh = ispv ? &Player[pid].Vehicle[vid] : &StaticVehicle[vehicleid];
+
+        if (EngineOn(vehicleid)) {
+          float coeff;
+
+          veh->Fuel = std::max(0.0f, (veh->Fuel - 0.05f) * (vSpeed / 1000));
+          coeff = 0.05f * (vSpeed / 1000);
+
+          if (veh->Heat > 80) {
+            if (vSpeed > veh->lastSpeed)
+              veh->Heat += coeff;
+            else
+              veh->Heat -= coeff;
+          } else {
+            if (vSpeed > veh->lastSpeed)
+              veh->Heat += 0.05f + coeff;
+            else
+              veh->Heat += 0.05f;
+          }
+        } else {
+          veh->Heat = std::max(26.0f, veh->Heat - 0.005f);
+        }
+
+        veh->lastSpeed = vSpeed;
+
+        sprintf(txt, "Speed: ~r~%.0fKm/h", vSpeed);
+        if (vSpeed >= (Player[playerid].DataState.speedlimit - 1) && SpeedLimitOn(playerid))
+          sprintf(txt, "Speed: ~y~%.0fKm/h", vSpeed);
         if (!EngineOn(vehicleid))
-          sprintf(txt, "Speed: ~b~%.0fKm/h", GetVehicleSpeed(vehicleid));
-        if (GetVehicleSpeed(vehicleid) >= (Player[playerid].DataState.speedlimit - 1) && SpeedLimitOn(playerid))
-          sprintf(txt, "Speed: ~y~%.0fKm/h", GetVehicleSpeed(vehicleid));
+          sprintf(txt, "Speed: ~b~%.0fKm/h", vSpeed);
         PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Speed, txt);
 
-        sprintf(txt, "Health: ~r~%.2f", RetVehicleHealth(vehicleid));
+        sprintf(txt, "Health: ~r~%.2f", vHealth);
         if (!EngineOn(vehicleid))
-          sprintf(txt, "Health: ~b~%.2f", RetVehicleHealth(vehicleid));
+          sprintf(txt, "Health: ~b~%.2f", vHealth);
         PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Health, txt);
 
-        strcpy(txt, "Fuel: ~r~-");
-        if (ispv)
-          sprintf(txt, "Fuel: ~r~%.1f", Player[pid].Vehicle[vid].Fuel);
-        if (!EngineOn(vehicleid)) {
-          strcpy(txt, "Fuel: ~b~-");
-          if (ispv)
-            sprintf(txt, "Fuel: ~b~%.1f", Player[pid].Vehicle[vid].Fuel);
-        }
+        sprintf(txt, "Fuel: ~r~%.1f", veh->Fuel);
+        if (!EngineOn(vehicleid))
+          sprintf(txt, "Fuel: ~b~%.1f", veh->Fuel);
         PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Fuel, txt);
 
-        strcpy(txt, "Temp: ~r~-");
-        if (ispv)
-          sprintf(txt, "Temp: ~r~%.2f", Player[pid].Vehicle[vid].Heat);
-        if (!EngineOn(vehicleid)) {
-          strcpy(txt, "Temp: ~b~-");
-          if (ispv)
-            sprintf(txt, "Temp: ~b~%.2f", Player[pid].Vehicle[vid].Heat);
-        }
+        sprintf(txt, "Temp: ~r~%.2f", veh->Heat);
+        if (!EngineOn(vehicleid))
+          sprintf(txt, "Temp: ~b~%.1f", veh->Heat);
         PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Heat, txt);
       }
     }
@@ -175,256 +191,134 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   TextLabel::Create("[Restaurant Exit Point]", 0xFFFFFFAA, 460.5504, -88.6155, 999.5547, 10.0);
   TextLabel::Create("[Drivers License Center Exit Point]", 0xFFFFFFAA, 1494.4346, 1303.5786, 1093.2891, 10.0);
 
-  Object::Create(971, 720.06940, -462.57724, 15.39299, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(971, 1042.84998, -1026.01123, 31.09643, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(971, 1025.36536, -1029.33276, 31.63884, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(971, -1420.50977, 2591.11279, 56.94583, 0.00000, 0.00000,
-                 180.00000);
-  Object::Create(971, 2386.68213, 1043.31189, 9.92575, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(8167, 2645.81055, -2039.32849, 12.56419, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(8167, 2645.81055, -2039.32849, 15.00648, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(971, -1935.82751, 238.56221, 33.64063, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(971, -1904.62756, 277.66324, 42.39743, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(971, -2716.14404, 216.72392, 3.81582, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(971, 1843.31055, -1855.03943, 12.37510, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(971, 2005.17334, 2303.33716, 9.81711, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(971, 1968.37793, 2162.65747, 12.66515, 0.00000, 0.00000,
-                 -90.00000);
-  Object::Create(971, 2393.19873, 1483.32202, 12.39729, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(971, -99.80347, 1111.46582, 20.85815, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(971, -2425.07886, 1027.89941, 51.84350, 0.00000, 0.00000,
-                 180.00000);
-  Object::Create(971, 2071.52344, -1831.55835, 13.00516, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(971, 488.63022, -1735.32129, 10.59052, 0.00000, 0.00000,
-                 -8.46000);
+  Object::Create(971, 720.06940, -462.57724, 15.39299, 0.00000, 0.00000, 0.00000);
+  Object::Create(971, 1042.84998, -1026.01123, 31.09643, 0.00000, 0.00000, 0.00000);
+  Object::Create(971, 1025.36536, -1029.33276, 31.63884, 0.00000, 0.00000, 0.00000);
+  Object::Create(971, -1420.50977, 2591.11279, 56.94583, 0.00000, 0.00000, 180.00000);
+  Object::Create(971, 2386.68213, 1043.31189, 9.92575, 0.00000, 0.00000, 0.00000);
+  Object::Create(8167, 2645.81055, -2039.32849, 12.56419, 0.00000, 0.00000, 90.00000);
+  Object::Create(8167, 2645.81055, -2039.32849, 15.00648, 0.00000, 0.00000, 90.00000);
+  Object::Create(971, -1935.82751, 238.56221, 33.64063, 0.00000, 0.00000, 0.00000);
+  Object::Create(971, -1904.62756, 277.66324, 42.39743, 0.00000, 0.00000, 0.00000);
+  Object::Create(971, -2716.14404, 216.72392, 3.81582, 0.00000, 0.00000, 90.00000);
+  Object::Create(971, 1843.31055, -1855.03943, 12.37510, 0.00000, 0.00000, 90.00000);
+  Object::Create(971, 2005.17334, 2303.33716, 9.81711, 0.00000, 0.00000, 0.00000);
+  Object::Create(971, 1968.37793, 2162.65747, 12.66515, 0.00000, 0.00000, -90.00000);
+  Object::Create(971, 2393.19873, 1483.32202, 12.39729, 0.00000, 0.00000, 0.00000);
+  Object::Create(971, -99.80347, 1111.46582, 20.85815, 0.00000, 0.00000, 0.00000);
+  Object::Create(971, -2425.07886, 1027.89941, 51.84350, 0.00000, 0.00000, 180.00000);
+  Object::Create(971, 2071.52344, -1831.55835, 13.00516, 0.00000, 0.00000, 90.00000);
+  Object::Create(971, 488.63022, -1735.32129, 10.59052, 0.00000, 0.00000, -8.46000);
 
-  Object::Create(18869, -2236.96631, 127.79252, 1035.46399, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18869, -2236.70630, 127.79250, 1035.46399, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18869, -2236.42627, 127.79250, 1035.46399, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18869, -2236.10620, 127.79250, 1035.46399, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18867, -2235.58618, 127.79250, 1035.46399, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18867, -2235.30640, 127.79250, 1035.46399, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18867, -2235.00635, 127.79250, 1035.46399, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18867, -2234.64624, 127.79250, 1035.46399, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(2028, -2231.81104, 127.77340, 1035.59448, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2226, -2235.28638, 129.41631, 1035.47986, 0.00000, 0.00000,
-                 -120.00000);
-  Object::Create(2226, -2236.08618, 129.41631, 1035.47986, 0.00000, 0.00000,
-                 -120.00000);
-  Object::Create(2226, -2234.42627, 129.41631, 1035.47986, 0.00000, 0.00000,
-                 -120.00000);
-  Object::Create(1781, -2228.45703, 130.95360, 1036.00439, 0.00000, 0.00000,
-                 -33.00000);
-  Object::Create(1781, -2227.23706, 130.95360, 1036.00439, 0.00000, 0.00000,
-                 -33.00000);
-  Object::Create(19807, -2237.30664, 137.79880, 1035.53870, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(19807, -2237.02661, 137.79880, 1035.53870, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(19807, -2236.76660, 137.79880, 1035.53870, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(19807, -2236.52661, 137.79880, 1035.53870, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(19807, -2236.28662, 137.79880, 1035.53870, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2099, -2230.93115, 138.02121, 1034.37671, 0.00000, 0.00000,
-                 -33.00000);
-  Object::Create(18871, -2236.97729, 127.61670, 1035.79126, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18871, -2236.79736, 127.61670, 1035.79126, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18871, -2236.59741, 127.61670, 1035.79126, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18871, -2236.41724, 127.61670, 1035.79126, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18871, -2236.21729, 127.61670, 1035.79126, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(18871, -2235.99731, 127.61670, 1035.79126, 0.00000, 0.00000,
-                 -180.00000);
-  Object::Create(2103, -2228.60181, 133.66570, 1036.00464, 0.00000, 0.00000,
-                 -26.00000);
-  Object::Create(2103, -2227.51099, 133.75337, 1036.00464, 0.00000, 0.00000,
-                 33.00000);
-  Object::Create(2149, -2237.95483, 134.54311, 1036.16431, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2149, -2237.95483, 133.86310, 1036.16431, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2149, -2237.95483, 133.24310, 1036.16431, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2149, -2237.95483, 132.66310, 1036.16431, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2232, -2232.84497, 127.95030, 1035.02405, 0.00000, 0.00000,
-                 180.00000);
-  Object::Create(2232, -2233.74512, 127.95030, 1035.02405, 0.00000, 0.00000,
-                 180.00000);
-  Object::Create(1785, -2229.57910, 136.79010, 1036.11255, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2190, -2241.02222, 130.55769, 1035.47998, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(2190, -2241.02222, 131.33771, 1035.47998, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(2190, -2241.02222, 132.13770, 1035.47998, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(2695, -2231.91724, 127.35710, 1036.89270, 0.00000, -5.00000,
-                 0.00000);
-  Object::Create(2641, -2222.01172, 144.32721, 1036.89685, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2641, -2235.29932, 138.14149, 1036.89685, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(2641, -2232.09937, 138.14149, 1036.89685, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(19893, -2240.77539, 133.84290, 1035.48022, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(19893, -2240.77539, 134.46291, 1035.48022, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(19893, -2240.77539, 135.06290, 1035.48022, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(19893, -2240.77539, 135.60291, 1035.48022, 0.00000, 0.00000,
-                 90.00000);
-  Object::Create(18875, -2233.47168, 137.81740, 1036.40649, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(18875, -2233.23169, 137.81740, 1036.40649, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(18875, -2233.73169, 137.81740, 1036.40649, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(18875, -2233.99170, 137.81740, 1036.40649, 0.00000, 0.00000,
-                 0.00000);
-  Object::Create(18875, -2234.25171, 137.81740, 1036.40649, 0.00000, 0.00000,
-                 0.00000);
+  Object::Create(18869, -2236.96631, 127.79252, 1035.46399, 0.00000, 0.00000, -180.00000);
+  Object::Create(18869, -2236.70630, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
+  Object::Create(18869, -2236.42627, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
+  Object::Create(18869, -2236.10620, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
+  Object::Create(18867, -2235.58618, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
+  Object::Create(18867, -2235.30640, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
+  Object::Create(18867, -2235.00635, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
+  Object::Create(18867, -2234.64624, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
+  Object::Create(2028, -2231.81104, 127.77340, 1035.59448, 0.00000, 0.00000, 0.00000);
+  Object::Create(2226, -2235.28638, 129.41631, 1035.47986, 0.00000, 0.00000, -120.00000);
+  Object::Create(2226, -2236.08618, 129.41631, 1035.47986, 0.00000, 0.00000, -120.00000);
+  Object::Create(2226, -2234.42627, 129.41631, 1035.47986, 0.00000, 0.00000, -120.00000);
+  Object::Create(1781, -2228.45703, 130.95360, 1036.00439, 0.00000, 0.00000, -33.00000);
+  Object::Create(1781, -2227.23706, 130.95360, 1036.00439, 0.00000, 0.00000, -33.00000);
+  Object::Create(19807, -2237.30664, 137.79880, 1035.53870, 0.00000, 0.00000, 0.00000);
+  Object::Create(19807, -2237.02661, 137.79880, 1035.53870, 0.00000, 0.00000, 0.00000);
+  Object::Create(19807, -2236.76660, 137.79880, 1035.53870, 0.00000, 0.00000, 0.00000);
+  Object::Create(19807, -2236.52661, 137.79880, 1035.53870, 0.00000, 0.00000, 0.00000);
+  Object::Create(19807, -2236.28662, 137.79880, 1035.53870, 0.00000, 0.00000, 0.00000);
+  Object::Create(2099, -2230.93115, 138.02121, 1034.37671, 0.00000, 0.00000, -33.00000);
+  Object::Create(18871, -2236.97729, 127.61670, 1035.79126, 0.00000, 0.00000, -180.00000);
+  Object::Create(18871, -2236.79736, 127.61670, 1035.79126, 0.00000, 0.00000, -180.00000);
+  Object::Create(18871, -2236.59741, 127.61670, 1035.79126, 0.00000, 0.00000, -180.00000);
+  Object::Create(18871, -2236.41724, 127.61670, 1035.79126, 0.00000, 0.00000, -180.00000);
+  Object::Create(18871, -2236.21729, 127.61670, 1035.79126, 0.00000, 0.00000, -180.00000);
+  Object::Create(18871, -2235.99731, 127.61670, 1035.79126, 0.00000, 0.00000, -180.00000);
+  Object::Create(2103, -2228.60181, 133.66570, 1036.00464, 0.00000, 0.00000, -26.00000);
+  Object::Create(2103, -2227.51099, 133.75337, 1036.00464, 0.00000, 0.00000, 33.00000);
+  Object::Create(2149, -2237.95483, 134.54311, 1036.16431, 0.00000, 0.00000, 0.00000);
+  Object::Create(2149, -2237.95483, 133.86310, 1036.16431, 0.00000, 0.00000, 0.00000);
+  Object::Create(2149, -2237.95483, 133.24310, 1036.16431, 0.00000, 0.00000, 0.00000);
+  Object::Create(2149, -2237.95483, 132.66310, 1036.16431, 0.00000, 0.00000, 0.00000);
+  Object::Create(2232, -2232.84497, 127.95030, 1035.02405, 0.00000, 0.00000, 180.00000);
+  Object::Create(2232, -2233.74512, 127.95030, 1035.02405, 0.00000, 0.00000, 180.00000);
+  Object::Create(1785, -2229.57910, 136.79010, 1036.11255, 0.00000, 0.00000, 0.00000);
+  Object::Create(2190, -2241.02222, 130.55769, 1035.47998, 0.00000, 0.00000, 90.00000);
+  Object::Create(2190, -2241.02222, 131.33771, 1035.47998, 0.00000, 0.00000, 90.00000);
+  Object::Create(2190, -2241.02222, 132.13770, 1035.47998, 0.00000, 0.00000, 90.00000);
+  Object::Create(2695, -2231.91724, 127.35710, 1036.89270, 0.00000, -5.00000, 0.00000);
+  Object::Create(2641, -2222.01172, 144.32721, 1036.89685, 0.00000, 0.00000, 0.00000);
+  Object::Create(2641, -2235.29932, 138.14149, 1036.89685, 0.00000, 0.00000, 0.00000);
+  Object::Create(2641, -2232.09937, 138.14149, 1036.89685, 0.00000, 0.00000, 0.00000);
+  Object::Create(19893, -2240.77539, 133.84290, 1035.48022, 0.00000, 0.00000, 90.00000);
+  Object::Create(19893, -2240.77539, 134.46291, 1035.48022, 0.00000, 0.00000, 90.00000);
+  Object::Create(19893, -2240.77539, 135.06290, 1035.48022, 0.00000, 0.00000, 90.00000);
+  Object::Create(19893, -2240.77539, 135.60291, 1035.48022, 0.00000, 0.00000, 90.00000);
+  Object::Create(18875, -2233.47168, 137.81740, 1036.40649, 0.00000, 0.00000, 0.00000);
+  Object::Create(18875, -2233.23169, 137.81740, 1036.40649, 0.00000, 0.00000, 0.00000);
+  Object::Create(18875, -2233.73169, 137.81740, 1036.40649, 0.00000, 0.00000, 0.00000);
+  Object::Create(18875, -2233.99170, 137.81740, 1036.40649, 0.00000, 0.00000, 0.00000);
+  Object::Create(18875, -2234.25171, 137.81740, 1036.40649, 0.00000, 0.00000, 0.00000);
 
-  Object::Create(337, 132.14426, 1706.19189, 1003.14368, 177.00000, 90.00000,
-                 -97.00000, -1, 1);
-  Object::Create(3761, 134.15401, 1696.84436, 1001.57410, 0.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18644, 135.82140, 1710.93713, 1001.64600, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18644, 136.36140, 1710.93713, 1001.64600, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18644, 137.08141, 1710.93713, 1001.64600, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18644, 137.56140, 1710.93713, 1001.64600, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18644, 137.56140, 1710.55713, 1001.64600, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18644, 137.02139, 1710.55713, 1001.64600, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18644, 136.36140, 1710.55713, 1001.64600, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18644, 135.84140, 1710.55713, 1001.64600, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18638, 134.71471, 1710.85034, 1001.70599, 0.00000, -90.00000,
-                 -180.00000, -1, 1);
-  Object::Create(18638, 134.09470, 1710.85034, 1001.70599, 0.00000, -90.00000,
-                 -180.00000, -1, 1);
-  Object::Create(18638, 133.53470, 1710.85034, 1001.70599, 0.00000, -90.00000,
-                 -180.00000, -1, 1);
-  Object::Create(18638, 132.93469, 1710.85034, 1001.70599, 0.00000, -90.00000,
-                 -180.00000, -1, 1);
-  Object::Create(18638, 132.93469, 1710.49036, 1001.70599, 0.00000, -90.00000,
-                 -180.00000, -1, 1);
-  Object::Create(18638, 133.51469, 1710.49036, 1001.70599, 0.00000, -90.00000,
-                 -180.00000, -1, 1);
-  Object::Create(18638, 134.09470, 1710.49036, 1001.70599, 0.00000, -90.00000,
-                 -180.00000, -1, 1);
-  Object::Create(18638, 134.71471, 1710.49036, 1001.70599, 0.00000, -90.00000,
-                 -180.00000, -1, 1);
-  Object::Create(18632, 137.59850, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 137.73849, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 137.89850, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 138.05850, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 138.19850, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 138.31850, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 138.43851, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 138.55850, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 138.67850, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 138.81850, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18632, 138.93851, 1700.21667, 1001.39551, 190.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(19324, 145.08090, 1701.52148, 1001.77692, 0.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(2314, 133.37389, 1700.25806, 1001.12329, 0.00000, 0.00000,
-                 0.00000, -1, 1);
-  Object::Create(18641, 134.93510, 1700.11414, 1001.64520, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18641, 134.41510, 1700.11414, 1001.64520, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18641, 133.91510, 1700.11414, 1001.64520, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18641, 133.37511, 1700.11414, 1001.64520, 0.00000, 90.00000,
-                 0.00000, -1, 1);
-  Object::Create(18641, 133.37511, 1700.49414, 1001.64520, 0.00000, 90.00000,
-                 0.00000, -1, 1);
+  Object::Create(337, 132.14426, 1706.19189, 1003.14368, 177.00000, 90.00000, -97.00000, -1, 1);
+  Object::Create(3761, 134.15401, 1696.84436, 1001.57410, 0.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18644, 135.82140, 1710.93713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18644, 136.36140, 1710.93713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18644, 137.08141, 1710.93713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18644, 137.56140, 1710.93713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18644, 137.56140, 1710.55713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18644, 137.02139, 1710.55713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18644, 136.36140, 1710.55713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18644, 135.84140, 1710.55713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18638, 134.71471, 1710.85034, 1001.70599, 0.00000, -90.00000, -180.00000, -1, 1);
+  Object::Create(18638, 134.09470, 1710.85034, 1001.70599, 0.00000, -90.00000, -180.00000, -1, 1);
+  Object::Create(18638, 133.53470, 1710.85034, 1001.70599, 0.00000, -90.00000, -180.00000, -1, 1);
+  Object::Create(18638, 132.93469, 1710.85034, 1001.70599, 0.00000, -90.00000, -180.00000, -1, 1);
+  Object::Create(18638, 132.93469, 1710.49036, 1001.70599, 0.00000, -90.00000, -180.00000, -1, 1);
+  Object::Create(18638, 133.51469, 1710.49036, 1001.70599, 0.00000, -90.00000, -180.00000, -1, 1);
+  Object::Create(18638, 134.09470, 1710.49036, 1001.70599, 0.00000, -90.00000, -180.00000, -1, 1);
+  Object::Create(18638, 134.71471, 1710.49036, 1001.70599, 0.00000, -90.00000, -180.00000, -1, 1);
+  Object::Create(18632, 137.59850, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 137.73849, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 137.89850, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 138.05850, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 138.19850, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 138.31850, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 138.43851, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 138.55850, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 138.67850, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 138.81850, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18632, 138.93851, 1700.21667, 1001.39551, 190.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(19324, 145.08090, 1701.52148, 1001.77692, 0.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(2314, 133.37389, 1700.25806, 1001.12329, 0.00000, 0.00000, 0.00000, -1, 1);
+  Object::Create(18641, 134.93510, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18641, 134.41510, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18641, 133.91510, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18641, 133.37511, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18641, 133.37511, 1700.49414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
 
-  // job vehicles
-  Sweeper[0] = CreateVehicle(574, 1306.1726, -875.7529, 39.3935, -90.0000, 1, 0,
-                             100, false);
-  Sweeper[1] = CreateVehicle(574, 1306.1902, -873.5123, 39.3935, -90.0000, 1, 0,
-                             100, false);
-  Sweeper[2] = CreateVehicle(574, 1306.1666, -871.2911, 39.3935, -90.0000, 1, 0,
-                             100, false);
-  Sweeper[3] = CreateVehicle(574, 1306.1667, -869.1107, 39.3935, -90.0000, 1, 0,
-                             100, false);
-  Sweeper[4] = CreateVehicle(574, 1306.1678, -866.8701, 39.3935, -90.0000, 1, 0,
-                             100, false);
+  Sweeper[0] = CreateVehicle(574, 1306.1726, -875.7529, 39.3935, -90.0000, 1, 0, 100, false);
+  Sweeper[1] = CreateVehicle(574, 1306.1902, -873.5123, 39.3935, -90.0000, 1, 0, 100, false);
+  Sweeper[2] = CreateVehicle(574, 1306.1666, -871.2911, 39.3935, -90.0000, 1, 0, 100, false);
+  Sweeper[3] = CreateVehicle(574, 1306.1667, -869.1107, 39.3935, -90.0000, 1, 0, 100, false);
+  Sweeper[4] = CreateVehicle(574, 1306.1678, -866.8701, 39.3935, -90.0000, 1, 0, 100, false);
 
-  Bus[0].ID = CreateVehicle(437, 1244.9365, -2013.4041, 59.8729, 180.0000, 6, 7,
-                            100, false);
-  Bus[1].ID = CreateVehicle(437, 1250.0365, -2013.4041, 59.8729, 180.0000, 6, 7,
-                            100, false);
-  Bus[2].ID = CreateVehicle(437, 1255.0365, -2013.4041, 59.8729, 180.0000, 6, 7,
-                            100, false);
-  Bus[3].ID = CreateVehicle(437, 1260.0365, -2013.4041, 59.8729, 180.0000, 6, 7,
-                            100, false);
-  Bus[4].ID = CreateVehicle(437, 1265.0365, -2013.4041, 59.8729, 180.0000, 6, 7,
-                            100, false);
-  Bus[5].ID = CreateVehicle(437, 1270.0365, -2013.4041, 59.8729, 180.0000, 6, 7,
-                            100, false);
-  Bus[6].ID = CreateVehicle(437, 1275.0365, -2013.4041, 59.8729, 180.0000, 6, 7,
-                            100, false);
+  Bus[0].ID = CreateVehicle(437, 1244.9365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
+  Bus[1].ID = CreateVehicle(437, 1250.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
+  Bus[2].ID = CreateVehicle(437, 1255.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
+  Bus[3].ID = CreateVehicle(437, 1260.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
+  Bus[4].ID = CreateVehicle(437, 1265.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
+  Bus[5].ID = CreateVehicle(437, 1270.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
+  Bus[6].ID = CreateVehicle(437, 1275.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
 
-  Mower[0] = CreateVehicle(572, 767.8790, -1307.7762, 13.1944, 0.0000, 3, 0,
-                           100, false);
-  Mower[1] = CreateVehicle(572, 771.1190, -1307.7563, 13.1944, 0.0000, 3, 0,
-                           100, false);
-  Mower[2] = CreateVehicle(572, 774.1190, -1307.7563, 13.1944, 0.0000, 3, 0,
-                           100, false);
-  Mower[3] = CreateVehicle(572, 777.3190, -1307.7563, 13.1944, 0.0000, 3, 0,
-                           100, false);
+  Mower[0] = CreateVehicle(572, 767.8790, -1307.7762, 13.1944, 0.0000, 3, 0, 100, false);
+  Mower[1] = CreateVehicle(572, 771.1190, -1307.7563, 13.1944, 0.0000, 3, 0, 100, false);
+  Mower[2] = CreateVehicle(572, 774.1190, -1307.7563, 13.1944, 0.0000, 3, 0, 100, false);
+  Mower[3] = CreateVehicle(572, 777.3190, -1307.7563, 13.1944, 0.0000, 3, 0, 100, false);
 
-  char plateBuffer[16];
+  char plateBuffer[10];
 
   for (int i = 0; i < Bus.size(); i++) {
     sprintf(plateBuffer, "BUS-%d", i + 1);
@@ -439,13 +333,11 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   for (int i = 0; i < Bus.size(); i++)
     strcpy(Bus[i].Owner, "None");
 
-  for (int i = 0; i < MAX_BUSINESS; i++) {
+  for (int i = 0; i < MAX_BUSINESS; i++)
     LoadBusiness("store", i);
-  }
 
-  for (int i = 0; i < MAX_HOUSE; i++) {
+  for (int i = 0; i < MAX_HOUSE; i++)
     LoadHouse(i);
-  }
 
   SetTimer(60000, true, TC_UpdateRentTime, nullptr);
   SetTimer(100, true, TC_AltPlayerUpdate, nullptr);
@@ -461,31 +353,27 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerConnect(int playerid) {
   TogglePlayerSpectating(playerid, 1);
 
   char file_account[256];
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
   sprintf(file_account, PLAYER_ACCOUNT, name);
 
   if (!fexist(file_account)) {
-    ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD,
-                     "Register",
-                     "This Username Is Not Registered\nType Your Desired "
-                     "Password to Create Account",
-                     "Register", "Leave");
+    ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "Register",
+      "This Username Is Not Registered\nType Your Desired Password to Create Account",
+      "Register", "Leave"
+    );
   } else {
-    ShowPlayerDialog(
-        playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "Login",
-        "This Username Is Registered\nType Your Password In Order To Login",
-        "Login", "Leave");
+    ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "Login",
+      "This Username Is Registered\nType Your Password In Order To Login",
+      "Login", "Leave"
+    );
   }
-
-  free(name);
   return true;
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
   char msgBuff[64];
-  char *name = RetPname(playerid);
-  sprintf(msgBuff, "%s Has disconnected from the server (%s)", name,
-          DCReason[reason]);
+  const char *name = RetPname(playerid);
+  sprintf(msgBuff, "%s Has disconnected from the server (%s)", name, DCReason[reason]);
   SendClientMessageToAll(0xFFFF00AA, msgBuff);
 
   if (!Player[playerid].Flag.FirstSpawn) {
@@ -498,8 +386,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
       }
     }
   }
-
-  free(name);
   return true;
 }
 
@@ -511,7 +397,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDeath(int playerid, int killerid, int rea
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
   if (Player[playerid].Flag.FirstSpawn) {
     char msg[128];
-    char *name = RetPname(playerid);
+    const char *name = RetPname(playerid);
     sprintf(msg, "%s Has connected to the server", name);
     SendClientMessageToAll(0xFFFF00AA, msg);
     Player[playerid].Flag.FirstSpawn = false;
@@ -527,181 +413,96 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
     RemoveBuildingForPlayer(playerid, 1775, 0.0, 0.0, 0.0, 6000.0);
     RemoveBuildingForPlayer(playerid, 1776, 0.0, 0.0, 0.0, 6000.0);
     RemoveBuildingForPlayer(playerid, 956, 0.0, 0.0, 0.0, 6000.0);
-    RemoveBuildingForPlayer(playerid, 2489, -2237.6328, 127.5547, 1035.6875,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2481, -2237.6328, 127.5781, 1036.7969,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2490, -2237.6406, 127.5547, 1036.3984,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2495, -2237.6406, 127.5547, 1036.0391,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2488, -2237.6328, 127.5547, 1035.3281,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2483, -2236.5078, 127.5625, 1036.6094,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2504, -2235.0859, 127.6406, 1035.8516,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2503, -2235.5703, 127.6406, 1035.8516,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2501, -2234.6328, 127.6406, 1035.8516,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2513, -2236.5313, 127.6641, 1035.5703,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2490, -2229.7188, 127.5547, 1036.5391,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2495, -2229.0938, 127.5547, 1036.5313,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2477, -2223.5703, 128.2422, 1036.4922,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 928, -2225.1406, 128.2969, 1034.6719,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 926, -2224.2500, 128.4141, 1034.6563,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 14558, -2223.3438, 128.4219, 1035.2031,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2484, -2240.8125, 131.0781, 1036.3047,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2362, -2238.3281, 129.2656, 1035.4453,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2497, -2237.2266, 131.1328, 1037.6875,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2493, -2233.3516, 129.2734, 1035.4063,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2510, -2233.6406, 129.2344, 1037.8906,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2494, -2233.6094, 129.5234, 1035.4063,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2492, -2233.1016, 129.5234, 1035.4063,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2491, -2233.1016, 129.7734, 1034.4063,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2496, -2233.3516, 129.7734, 1035.4063,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2486, -2234.4531, 131.7500, 1035.4063,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2459, -2234.7031, 131.9922, 1034.3984,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2484, -2233.9922, 132.1016, 1036.8281,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2234.1250, 132.1172, 1035.1484,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2487, -2226.1641, 129.7500, 1037.5469,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2499, -2231.4766, 130.3203, 1037.6953,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2471, -2228.0547, 130.3281, 1035.8125,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2470, -2227.4141, 130.6875, 1036.0391,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2469, -2228.4688, 130.7188, 1036.0391,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2503, -2223.5391, 131.0703, 1035.8438,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2501, -2223.5391, 131.6406, 1035.8438,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2469, -2237.9063, 133.1953, 1036.0391,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2470, -2237.8750, 134.2500, 1036.0391,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2487, -2238.1719, 135.7969, 1037.5469,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2504, -2236.8516, 137.8906, 1035.8516,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2501, -2237.3047, 137.8906, 1035.8516,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2486, -2233.4766, 132.4453, 1035.8047,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2498, -2231.9453, 132.8125, 1037.5703,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2512, -2235.9922, 133.4375, 1037.8438,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2459, -2234.7031, 135.0625, 1034.3984,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2464, -2233.9844, 135.1641, 1036.1953,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2234.1250, 135.8672, 1035.1484,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2498, -2232.3281, 136.2422, 1037.5703,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2471, -2235.3672, 137.8516, 1035.9063,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2503, -2236.3672, 137.8906, 1035.8516,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2466, -2235.2969, 137.9609, 1036.5547,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2513, -2235.1875, 137.9297, 1036.2500,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2467, -2235.5391, 137.9609, 1034.4141,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2235.4453, 138.2109, 1035.3984,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2511, -2229.2734, 132.2813, 1037.8594,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2503, -2223.5391, 132.4375, 1035.8438,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2501, -2223.5391, 133.0078, 1035.8438,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2486, -2228.5469, 133.3984, 1035.6641,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2227.8984, 133.7656, 1035.5156,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2484, -2228.0938, 133.7734, 1036.8281,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2486, -2227.5703, 134.0938, 1035.2813,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2512, -2226.4922, 134.0156, 1037.8438,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2499, -2230.1563, 135.2578, 1037.6953,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2478, -2226.3750, 136.9922, 1034.8281,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2229.6797, 137.1406, 1036.0391,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2465, -2227.9219, 137.0234, 1036.8594,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 2480, -2226.3672, 137.0781, 1036.4922,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 5043, 1843.3672, -1856.3203, 13.8750,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 5340, 2644.8594, -2039.2344, 14.0391,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 5422, 2071.4766, -1831.4219, 14.5625,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 5856, 1024.9844, -1029.3516, 33.1953,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 5779, 1041.3516, -1025.9297, 32.6719,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 6400, 488.2813, -1734.6953, 12.3906,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 10575, -2716.3516, 217.4766, 5.3828,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 11313, -1935.8594, 239.5313, 35.3516,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 11319, -1904.5313, 277.8984, 42.9531,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 9625, -2425.7266, 1027.9922, 52.2813,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 9093, 2386.6563, 1043.6016, 11.5938,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 8957, 2393.7656, 1483.6875, 12.7109,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 7709, 2006.0000, 2303.7266, 11.3125,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 7891, 1968.7422, 2162.4922, 12.0938,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 3294, -1420.5469, 2591.1563, 57.7422,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 3294, -100.0000, 1111.4141, 21.6406,
-                            0.25);
-    RemoveBuildingForPlayer(playerid, 13028, 720.0156, -462.5234, 16.8594,
-                            0.25);
+    RemoveBuildingForPlayer(playerid, 2489, -2237.6328, 127.5547, 1035.6875, 0.25);
+    RemoveBuildingForPlayer(playerid, 2481, -2237.6328, 127.5781, 1036.7969, 0.25);
+    RemoveBuildingForPlayer(playerid, 2490, -2237.6406, 127.5547, 1036.3984, 0.25);
+    RemoveBuildingForPlayer(playerid, 2495, -2237.6406, 127.5547, 1036.0391, 0.25);
+    RemoveBuildingForPlayer(playerid, 2488, -2237.6328, 127.5547, 1035.3281, 0.25);
+    RemoveBuildingForPlayer(playerid, 2483, -2236.5078, 127.5625, 1036.6094, 0.25);
+    RemoveBuildingForPlayer(playerid, 2504, -2235.0859, 127.6406, 1035.8516, 0.25);
+    RemoveBuildingForPlayer(playerid, 2503, -2235.5703, 127.6406, 1035.8516, 0.25);
+    RemoveBuildingForPlayer(playerid, 2501, -2234.6328, 127.6406, 1035.8516, 0.25);
+    RemoveBuildingForPlayer(playerid, 2513, -2236.5313, 127.6641, 1035.5703, 0.25);
+    RemoveBuildingForPlayer(playerid, 2490, -2229.7188, 127.5547, 1036.5391, 0.25);
+    RemoveBuildingForPlayer(playerid, 2495, -2229.0938, 127.5547, 1036.5313, 0.25);
+    RemoveBuildingForPlayer(playerid, 2477, -2223.5703, 128.2422, 1036.4922, 0.25);
+    RemoveBuildingForPlayer(playerid, 928, -2225.1406, 128.2969, 1034.6719, 0.25);
+    RemoveBuildingForPlayer(playerid, 926, -2224.2500, 128.4141, 1034.6563, 0.25);
+    RemoveBuildingForPlayer(playerid, 14558, -2223.3438, 128.4219, 1035.2031, 0.25);
+    RemoveBuildingForPlayer(playerid, 2484, -2240.8125, 131.0781, 1036.3047, 0.25);
+    RemoveBuildingForPlayer(playerid, 2362, -2238.3281, 129.2656, 1035.4453, 0.25);
+    RemoveBuildingForPlayer(playerid, 2497, -2237.2266, 131.1328, 1037.6875, 0.25);
+    RemoveBuildingForPlayer(playerid, 2493, -2233.3516, 129.2734, 1035.4063, 0.25);
+    RemoveBuildingForPlayer(playerid, 2510, -2233.6406, 129.2344, 1037.8906, 0.25);
+    RemoveBuildingForPlayer(playerid, 2494, -2233.6094, 129.5234, 1035.4063, 0.25);
+    RemoveBuildingForPlayer(playerid, 2492, -2233.1016, 129.5234, 1035.4063, 0.25);
+    RemoveBuildingForPlayer(playerid, 2491, -2233.1016, 129.7734, 1034.4063, 0.25);
+    RemoveBuildingForPlayer(playerid, 2496, -2233.3516, 129.7734, 1035.4063, 0.25);
+    RemoveBuildingForPlayer(playerid, 2486, -2234.4531, 131.7500, 1035.4063, 0.25);
+    RemoveBuildingForPlayer(playerid, 2459, -2234.7031, 131.9922, 1034.3984, 0.25);
+    RemoveBuildingForPlayer(playerid, 2484, -2233.9922, 132.1016, 1036.8281, 0.25);
+    RemoveBuildingForPlayer(playerid, 2474, -2234.1250, 132.1172, 1035.1484, 0.25);
+    RemoveBuildingForPlayer(playerid, 2487, -2226.1641, 129.7500, 1037.5469, 0.25);
+    RemoveBuildingForPlayer(playerid, 2499, -2231.4766, 130.3203, 1037.6953, 0.25);
+    RemoveBuildingForPlayer(playerid, 2471, -2228.0547, 130.3281, 1035.8125, 0.25);
+    RemoveBuildingForPlayer(playerid, 2470, -2227.4141, 130.6875, 1036.0391, 0.25);
+    RemoveBuildingForPlayer(playerid, 2469, -2228.4688, 130.7188, 1036.0391, 0.25);
+    RemoveBuildingForPlayer(playerid, 2503, -2223.5391, 131.0703, 1035.8438, 0.25);
+    RemoveBuildingForPlayer(playerid, 2501, -2223.5391, 131.6406, 1035.8438, 0.25);
+    RemoveBuildingForPlayer(playerid, 2469, -2237.9063, 133.1953, 1036.0391, 0.25);
+    RemoveBuildingForPlayer(playerid, 2470, -2237.8750, 134.2500, 1036.0391, 0.25);
+    RemoveBuildingForPlayer(playerid, 2487, -2238.1719, 135.7969, 1037.5469, 0.25);
+    RemoveBuildingForPlayer(playerid, 2504, -2236.8516, 137.8906, 1035.8516, 0.25);
+    RemoveBuildingForPlayer(playerid, 2501, -2237.3047, 137.8906, 1035.8516, 0.25);
+    RemoveBuildingForPlayer(playerid, 2486, -2233.4766, 132.4453, 1035.8047, 0.25);
+    RemoveBuildingForPlayer(playerid, 2498, -2231.9453, 132.8125, 1037.5703, 0.25);
+    RemoveBuildingForPlayer(playerid, 2512, -2235.9922, 133.4375, 1037.8438, 0.25);
+    RemoveBuildingForPlayer(playerid, 2459, -2234.7031, 135.0625, 1034.3984, 0.25);
+    RemoveBuildingForPlayer(playerid, 2464, -2233.9844, 135.1641, 1036.1953, 0.25);
+    RemoveBuildingForPlayer(playerid, 2474, -2234.1250, 135.8672, 1035.1484, 0.25);
+    RemoveBuildingForPlayer(playerid, 2498, -2232.3281, 136.2422, 1037.5703, 0.25);
+    RemoveBuildingForPlayer(playerid, 2471, -2235.3672, 137.8516, 1035.9063, 0.25);
+    RemoveBuildingForPlayer(playerid, 2503, -2236.3672, 137.8906, 1035.8516, 0.25);
+    RemoveBuildingForPlayer(playerid, 2466, -2235.2969, 137.9609, 1036.5547, 0.25);
+    RemoveBuildingForPlayer(playerid, 2513, -2235.1875, 137.9297, 1036.2500, 0.25);
+    RemoveBuildingForPlayer(playerid, 2467, -2235.5391, 137.9609, 1034.4141, 0.25);
+    RemoveBuildingForPlayer(playerid, 2474, -2235.4453, 138.2109, 1035.3984, 0.25);
+    RemoveBuildingForPlayer(playerid, 2511, -2229.2734, 132.2813, 1037.8594, 0.25);
+    RemoveBuildingForPlayer(playerid, 2503, -2223.5391, 132.4375, 1035.8438, 0.25);
+    RemoveBuildingForPlayer(playerid, 2501, -2223.5391, 133.0078, 1035.8438, 0.25);
+    RemoveBuildingForPlayer(playerid, 2486, -2228.5469, 133.3984, 1035.6641, 0.25);
+    RemoveBuildingForPlayer(playerid, 2474, -2227.8984, 133.7656, 1035.5156, 0.25);
+    RemoveBuildingForPlayer(playerid, 2484, -2228.0938, 133.7734, 1036.8281, 0.25);
+    RemoveBuildingForPlayer(playerid, 2486, -2227.5703, 134.0938, 1035.2813, 0.25);
+    RemoveBuildingForPlayer(playerid, 2512, -2226.4922, 134.0156, 1037.8438, 0.25);
+    RemoveBuildingForPlayer(playerid, 2499, -2230.1563, 135.2578, 1037.6953, 0.25);
+    RemoveBuildingForPlayer(playerid, 2478, -2226.3750, 136.9922, 1034.8281, 0.25);
+    RemoveBuildingForPlayer(playerid, 2474, -2229.6797, 137.1406, 1036.0391, 0.25);
+    RemoveBuildingForPlayer(playerid, 2465, -2227.9219, 137.0234, 1036.8594, 0.25);
+    RemoveBuildingForPlayer(playerid, 2480, -2226.3672, 137.0781, 1036.4922, 0.25);
+    RemoveBuildingForPlayer(playerid, 5043, 1843.3672, -1856.3203, 13.8750, 0.25);
+    RemoveBuildingForPlayer(playerid, 5340, 2644.8594, -2039.2344, 14.0391, 0.25);
+    RemoveBuildingForPlayer(playerid, 5422, 2071.4766, -1831.4219, 14.5625, 0.25);
+    RemoveBuildingForPlayer(playerid, 5856, 1024.9844, -1029.3516, 33.1953, 0.25);
+    RemoveBuildingForPlayer(playerid, 5779, 1041.3516, -1025.9297, 32.6719, 0.25);
+    RemoveBuildingForPlayer(playerid, 6400, 488.2813, -1734.6953, 12.3906, 0.25);
+    RemoveBuildingForPlayer(playerid, 10575, -2716.3516, 217.4766, 5.3828, 0.25);
+    RemoveBuildingForPlayer(playerid, 11313, -1935.8594, 239.5313, 35.3516, 0.25);
+    RemoveBuildingForPlayer(playerid, 11319, -1904.5313, 277.8984, 42.9531, 0.25);
+    RemoveBuildingForPlayer(playerid, 9625, -2425.7266, 1027.9922, 52.2813, 0.25);
+    RemoveBuildingForPlayer(playerid, 9093, 2386.6563, 1043.6016, 11.5938, 0.25);
+    RemoveBuildingForPlayer(playerid, 8957, 2393.7656, 1483.6875, 12.7109, 0.25);
+    RemoveBuildingForPlayer(playerid, 7709, 2006.0000, 2303.7266, 11.3125, 0.25);
+    RemoveBuildingForPlayer(playerid, 7891, 1968.7422, 2162.4922, 12.0938, 0.25);
+    RemoveBuildingForPlayer(playerid, 3294, -1420.5469, 2591.1563, 57.7422, 0.25);
+    RemoveBuildingForPlayer(playerid, 3294, -100.0000, 1111.4141, 21.6406, 0.25);
+    RemoveBuildingForPlayer(playerid, 13028, 720.0156, -462.5234, 16.8594, 0.25);
 
-    Player[playerid].VehicleIndicator.MainBox =
-        CreatePlayerTextDraw(playerid, 634.503662, 365.500000, "MainBox");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.MainBox,
-                             0.000000, 7.914812);
-    PlayerTextDrawTextSize(playerid, Player[playerid].VehicleIndicator.MainBox,
-                           531.645690, 0.000000);
+    /* == Vehicle Status UI == */
+    /* Background Box */
+    Player[playerid].VehicleIndicator.MainBox = CreatePlayerTextDraw(playerid, 634.503662, 365.500000, "MainBox");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.MainBox, 0.000000, 7.914812);
+    PlayerTextDrawTextSize(playerid, Player[playerid].VehicleIndicator.MainBox, 531.645690, 0.000000);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.MainBox, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.MainBox, 0);
     PlayerTextDrawUseBox(playerid, Player[playerid].VehicleIndicator.MainBox, true);
@@ -710,61 +511,49 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
     PlayerTextDrawSetOutline(playerid, Player[playerid].VehicleIndicator.MainBox, 0);
     PlayerTextDrawFont(playerid, Player[playerid].VehicleIndicator.MainBox, 0);
 
-    Player[playerid].VehicleIndicator.Speed =
-        CreatePlayerTextDraw(playerid, 538.331176, 364.583190, "Speed:");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Speed,
-                             0.287891, 1.570831);
+    /* Speed */
+    Player[playerid].VehicleIndicator.Speed = CreatePlayerTextDraw(playerid, 538.331176, 364.583190, "Speed:");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Speed, 0.287891, 1.570831);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.Speed, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.Speed, -1);
     PlayerTextDrawSetShadow(playerid, Player[playerid].VehicleIndicator.Speed, 0);
     PlayerTextDrawSetOutline(playerid, Player[playerid].VehicleIndicator.Speed, 1);
-    PlayerTextDrawBackgroundColor(playerid, Player[playerid].VehicleIndicator.Speed,
-                                  51);
+    PlayerTextDrawBackgroundColor(playerid, Player[playerid].VehicleIndicator.Speed, 51);
     PlayerTextDrawFont(playerid, Player[playerid].VehicleIndicator.Speed, 1);
-    PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Speed,
-                                  1);
+    PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Speed, 1);
 
-    Player[playerid].VehicleIndicator.Health =
-        CreatePlayerTextDraw(playerid, 537.862792, 382.083465, "Health:");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Health,
-                             0.279457, 1.594162);
+    /* Health */
+    Player[playerid].VehicleIndicator.Health = CreatePlayerTextDraw(playerid, 537.862792, 382.083465, "Health:");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Health, 0.279457, 1.594162);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.Health, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.Health, -1);
     PlayerTextDrawSetShadow(playerid, Player[playerid].VehicleIndicator.Health, 0);
     PlayerTextDrawSetOutline(playerid, Player[playerid].VehicleIndicator.Health, 1);
-    PlayerTextDrawBackgroundColor(playerid, Player[playerid].VehicleIndicator.Health,
-                                  51);
+    PlayerTextDrawBackgroundColor(playerid, Player[playerid].VehicleIndicator.Health, 51);
     PlayerTextDrawFont(playerid, Player[playerid].VehicleIndicator.Health, 1);
-    PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Health,
-                                  1);
+    PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Health, 1);
 
-    Player[playerid].VehicleIndicator.Fuel =
-        CreatePlayerTextDraw(playerid, 536.925964, 400.166625, "Fuel:");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Fuel,
-                             0.447188, 1.477498);
+    /* Fuel */
+    Player[playerid].VehicleIndicator.Fuel = CreatePlayerTextDraw(playerid, 536.925964, 400.166625, "Fuel:");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Fuel, 0.447188, 1.477498);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.Fuel, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.Fuel, -1);
     PlayerTextDrawSetShadow(playerid, Player[playerid].VehicleIndicator.Fuel, 0);
     PlayerTextDrawSetOutline(playerid, Player[playerid].VehicleIndicator.Fuel, 1);
-    PlayerTextDrawBackgroundColor(playerid, Player[playerid].VehicleIndicator.Fuel,
-                                  51);
+    PlayerTextDrawBackgroundColor(playerid, Player[playerid].VehicleIndicator.Fuel, 51);
     PlayerTextDrawFont(playerid, Player[playerid].VehicleIndicator.Fuel, 1);
     PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Fuel, 1);
 
-    Player[playerid].VehicleIndicator.Heat =
-        CreatePlayerTextDraw(playerid, 536.457214, 418.833374, "Temp:");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Heat,
-                             0.414860, 1.459999);
+    /* Temperature */
+    Player[playerid].VehicleIndicator.Heat = CreatePlayerTextDraw(playerid, 536.457214, 418.833374, "Temp:");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Heat, 0.414860, 1.459999);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.Heat, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.Heat, -1);
     PlayerTextDrawSetShadow(playerid, Player[playerid].VehicleIndicator.Heat, 0);
     PlayerTextDrawSetOutline(playerid, Player[playerid].VehicleIndicator.Heat, 1);
-    PlayerTextDrawBackgroundColor(playerid, Player[playerid].VehicleIndicator.Heat,
-                                  51);
+    PlayerTextDrawBackgroundColor(playerid, Player[playerid].VehicleIndicator.Heat, 51);
     PlayerTextDrawFont(playerid, Player[playerid].VehicleIndicator.Heat, 1);
     PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Heat, 1);
-
-    free(name);
   }
 
   if (Player[playerid].Flag.NewAccount) {
@@ -812,13 +601,12 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnVehicleCreated(int vehicleid) {
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
   if (Player[playerid].Flag.NewAccount) {
-    SetSpawnInfo(playerid, 0, STARTER_SKINS[Random.i(16)], 1643.9750, -2332.2830,
-                 13.5469, 0.0455, 0, 0, 0, 0, 0, 0);
+    SetSpawnInfo(playerid, 0, STARTER_SKINS[Random.i(16)], 1643.9750, -2332.2830, 13.5469, 0.0455, 0, 0, 0, 0, 0, 0);
     SpawnPlayer(playerid);
   } else {
     float pos[4];
     char fpath[256];
-    char *name = RetPname(playerid);
+    const char *name = RetPname(playerid);
     sprintf(fpath, PLAYER_ACCOUNT, name);
 
     mINI::INIFile file(fpath);
@@ -831,16 +619,12 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
     SetSpawnInfo(playerid, 0, std::stoi(ini["position"]["skin"]), pos[0],
                  pos[1], pos[2], pos[3], 0, 0, 0, 0, 0, 0);
     SpawnPlayer(playerid);
-
-    free(name);
   }
   return true;
 }
 
-PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
-                                                int response, int listitem,
-                                                const char *inputtext) {
-  char *name = RetPname(playerid);
+PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int response, int listitem, const char *inputtext) {
+  const char *name = RetPname(playerid);
 
   switch (dialogid) {
   case DIALOG_HOUSE_STORAGE_TAKE: {
@@ -977,7 +761,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid,
   }
   }
 
-  free(name);
   return true;
 }
 

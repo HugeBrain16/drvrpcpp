@@ -5,7 +5,7 @@
 
 bool cmd_lockrv(int playerid, Cmd cmd) {
   float pos[3];
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
 
   for (int i = 0; i < MAX_RENTVEH; i++) {
     GetVehiclePos(VehicleRent[i].ID, &pos[0], &pos[1], &pos[2]);
@@ -22,6 +22,5 @@ bool cmd_lockrv(int playerid, Cmd cmd) {
     }
   }
   SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not near by your rented vehicle!");
-  free(name);
   return true;
 }

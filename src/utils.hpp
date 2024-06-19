@@ -25,5 +25,6 @@ float RetVehicleHealth(int vehicleid);
 void CancelPlayer(int playerid);
 bool EngineOn(int vehicleid);
 bool SetEngine(int vehicleid, int engine);
+const char *GenerateNumberPlate();
 
 #endif

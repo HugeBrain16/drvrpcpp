@@ -92,9 +92,10 @@ float GetVehicleSpeed(int vehicleid) {
   float pos[3];
 
   if (GetVehicleVelocity(vehicleid, &pos[0], &pos[1], &pos[2])) {
-    return sqrt((pos[0] * pos[0]) + (pos[1] * pos[1]) + (pos[2] * pos[2])) * 181.5;
+    return sqrt((pos[0] * pos[0]) + (pos[1] * pos[1]) + (pos[2] * pos[2])) * 181.5f;
   }
-  return 0;
+
+  return 0.0f;
 }
 
 void SetVehicleSpeed(int vehicleid, float speed) {
@@ -148,5 +149,22 @@ bool SetEngine(int vehicleid, int engine) {
   int x[7];
   GetVehicleParamsEx(vehicleid, &x[0], &x[1], &x[2], &x[3], &x[4], &x[5], &x[6]);
   return SetVehicleParamsEx(vehicleid, engine, x[1], x[2], x[3], x[4], x[5], x[6]);
+}
+
+const char *GenerateNumberPlate() {
+  static char plate[10];
+  const char *letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  for (int i = 0; i < 4; i++) {
+    plate[i] = letters[Random.i(strlen(letters))];
+  }
+  plate[4] = ' ';
+
+  for (int i = 5; i < 9; i++) {
+    plate[i] = '0' + Random.i(10);
+  }
+  plate[9] = '\0';
+
+  return plate;
 }
 

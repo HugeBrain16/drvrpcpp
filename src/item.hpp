@@ -1,9 +1,6 @@
 #ifndef ITEM_HPP_INCLUDED
 #define ITEM_HPP_INCLUDED
 
-struct T_Item;
-struct T_ItemSlot;
-
 enum E_ItemType {
   ITEM_EMPTY,
   ITEM_SPRUNK,

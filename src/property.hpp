@@ -6,9 +6,6 @@
 #include "limits.hpp"
 #include "item.hpp"
 
-struct T_Store;
-struct T_Home;
-
 struct T_Store {
   char Owner[64];
   char Name[128];

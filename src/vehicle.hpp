@@ -21,11 +21,6 @@
 #define VTYPE_BOAT VTYPE_SEA
 #define VTYPE_BICYCLE VTYPE_BMX
 
-struct T_VDamageStatus;
-struct T_Vehicle;
-struct JOBV_BUS;
-struct T_Rent;
-
 struct T_VDamageStatus {
   int Panel;
   int Door;
@@ -35,10 +30,10 @@ struct T_VDamageStatus {
 
 struct T_Vehicle {
   int ID;
-  char Owner[32];
+  char Owner[MAX_PLAYER_NAME];
   int Color[2];
   int Model;
-  char Plate[32];
+  char Plate[10];
   float ParkPos[4];
   float LastPos[4];
   float Fuel;
@@ -63,6 +58,7 @@ struct T_Vehicle {
   float Heat;
   float Oil;
   float Battery;
+  float lastSpeed;
 };
 
 struct JOBV_BUS {
@@ -82,6 +78,7 @@ extern std::array<int, 5> Sweeper;
 extern std::array<JOBV_BUS, 7> Bus;
 extern std::array<int, 4> Mower;
 extern std::array<T_Rent, MAX_RENTVEH> VehicleRent;
+extern std::array<T_Vehicle, MAX_VEHICLES> StaticVehicle;
 
 bool IsPlayerInSweeper(int playerid);
 bool IsVehicleConnected(int vehicleid);
@@ -96,5 +93,6 @@ bool IsPlayerOnBike(int playerid);
 bool IsPlayerOnQuad(int playerid);
 void SetSweeperToRespawn();
 void SetSweeperToRespawn2(int delay);
+int SpawnStaticVehicle(int modelid, float x, float y, float z, float r, int color1, int color2, int respawnDelay, bool siren);
 
 #endif

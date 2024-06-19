@@ -6,16 +6,13 @@
 bool cmd_storage(int playerid, Cmd cmd) {
   char opt[8];
   int houseid = GetHouseID(playerid);
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
 
   if (houseid < 0)
     return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not inside a house");
   
-  if (strcmp(Houses[houseid].Owner, name)) {
-    free(name);
+  if (strcmp(Houses[houseid].Owner, name))
     return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not the owner of this house!");
-  }
-  free(name);
 
   if (sscanf(cmd.args, "%s", opt) == 1) {
     if (!strcmp(opt, "view")) {

@@ -9,7 +9,7 @@ using namespace Plugins::Streamer;
 
 bool cmd_buyhouse(int playerid, Cmd cmd) {
   char buff[128];
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
 
   for (int i = 0; i < MAX_HOUSE; i++) {
     if (IsPlayerInRangeOfPoint(playerid, 1.5, Houses[i].Pos[0], Houses[i].Pos[1], Houses[i].Pos[2])) {
@@ -22,12 +22,10 @@ bool cmd_buyhouse(int playerid, Cmd cmd) {
       strcpy(Houses[i].Owner, name);
       sprintf(buff, "{AAAAAA}[ID:%d]\n{FFFFFF}Owner: {FF0000}%s", i, Houses[i].Owner);
       TextLabel::UpdateText(Houses[i].Label, 0xFFFFFFAA, buff);
-      free(name);
       SaveHouse(i);
       return SendClientMessage(playerid, COLOR_INFO, "House bought!");
     }
   }
 
-  free(name);
   return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not near by any houses!");
 }

@@ -9,15 +9,20 @@
 
 std::array<T_Player, MAX_PLAYERS> Player;
 
-char *RetPname(int playerid, bool underscore) {
-  char *name = (char *)malloc(MAX_PLAYER_NAME * sizeof(char));
+const char *RetPname(int playerid, bool underscore) {
+  static char name[MAX_PLAYER_NAME];
+  name[0] = '\0';
+
   if (!IsPlayerConnected(playerid))
     return name;
+
   GetPlayerName(playerid, name, MAX_PLAYER_NAME);
+
   if (underscore)
     for (int i = 0; i < strlen(name); i++)
       if (name[i] == '_')
         name[i] = ' ';
+
   return name;
 }
 
@@ -36,7 +41,7 @@ bool PlayerHasJob(int playerid, E_PlayerJob job) {
 
 bool SaveInventory(int playerid) {
   char buff[128];
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
 
   sprintf(buff, PLAYER_INVENTORY, name);
   mINI::INIFile file(buff);
@@ -55,20 +60,17 @@ bool SaveInventory(int playerid) {
   }
 
   file.write(ini);
-  free(name);
   return true;
 }
 
 bool LoadInventory(int playerid) {
   char buff[128];
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
 
   sprintf(buff, PLAYER_INVENTORY, name);
 
-  if (!fexist(buff)) {
-    free(name);
+  if (!fexist(buff))
     return false;
-  }
 
   mINI::INIFile file(buff);
   mINI::INIStructure ini;
@@ -83,8 +85,6 @@ bool LoadInventory(int playerid) {
     Player[playerid].Inventory[i].Item.Equipped = (bool)std::stoi(ini[buff]["equipped"]);
     Player[playerid].Inventory[i].Item.Durability = std::stoi(ini[buff]["durability"]);
   }
-
-  free(name);
   return true;
 }
 
@@ -186,14 +186,13 @@ char *GetInvText(int playerid) {
 
 int GetHouseCount(int playerid) {
   int count = 0;
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
 
   for (int i = 0; i < MAX_HOUSE; i++) {
     if (!strcmp(Houses[i].Owner, name))
       count++;
   }
 
-  free(name);
   return count;
 }
 
@@ -202,7 +201,7 @@ bool HasHouse(int playerid) {
 }
 
 int GetBizCount(const char *type, int playerid) {
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
   int result = 0;
 
   if (!strcmp(type, "store")) {
@@ -212,7 +211,6 @@ int GetBizCount(const char *type, int playerid) {
     }
   }
 
-  free(name);
   return result;
 }
 
@@ -238,7 +236,7 @@ void SavePlayer(int playerid) {
   float pos[4];
   float mainStatus[2];
   char fpath[256];
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
 
   sprintf(fpath, PLAYER_ACCOUNT, name);
   GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
@@ -270,12 +268,11 @@ void SavePlayer(int playerid) {
   ini["job"]["trucker"] = std::to_string(Player[playerid].Job[Trucker].joined);
   ini["job"]["taxi"] = std::to_string(Player[playerid].Job[Taxi].joined);
   file.write(ini);
-  free(name);
 }
 
 void LoadPlayer(int playerid) {
   char fpath[256];
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
   sprintf(fpath, PLAYER_ACCOUNT, name);
 
   mINI::INIFile file(fpath);
@@ -302,7 +299,6 @@ void LoadPlayer(int playerid) {
   FreezePlayer(playerid, 1000);
   SetPlayerInterior(playerid, std::stoi(ini["position"]["int"]));
   SetPlayerVirtualWorld(playerid, std::stoi(ini["position"]["vw"]));
-  free(name);
 }
 
 bool SpeedLimitOn(int playerid) {

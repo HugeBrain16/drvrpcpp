@@ -10,15 +10,6 @@
 #include "item.hpp"
 #include "vehicle.hpp"
 
-struct T_PlayerStatus;
-struct T_DataState;
-struct T_PlayerFlag;
-struct T_PlayerJob;
-struct T_PlayerMission;
-struct T_PlayerCheckpoint;
-struct T_PlayerVehicleIndicator;
-struct T_Player;
-
 enum E_PlayerJob { Gunmaker, Trucker, Mechanic, Taxi, E_PlayerJob_COUNT };
 enum E_PlayerMission { MSweeper, MMower, MMaterial, E_PlayerMission_COUNT };
 enum E_PlayerPoint { PPRent, E_PlayerPoint_COUNT };
@@ -79,7 +70,7 @@ struct T_Player {
 
 extern std::array<T_Player, MAX_PLAYERS> Player;
 
-char *RetPname(int playerid, bool underscore = false);
+const char *RetPname(int playerid, bool underscore = false);
 bool PlayerHasJob(int playerid, E_PlayerJob job);
 bool SaveInventory(int playerid);
 bool LoadInventory(int playerid);

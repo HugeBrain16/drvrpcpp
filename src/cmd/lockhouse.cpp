@@ -4,7 +4,7 @@
 #include "property.hpp"
 
 bool cmd_lockhouse(int playerid, Cmd cmd) {
-  char *name = RetPname(playerid);
+  const char *name = RetPname(playerid);
 
   for (int i = 0; i < MAX_HOUSE; i++) {
     if (GetPlayerVirtualWorld(playerid) == 0) {
@@ -16,7 +16,6 @@ bool cmd_lockhouse(int playerid, Cmd cmd) {
         else
           SendClientMessage(playerid, COLOR_INFO, "The door has been unlocked!");
 
-        free(name);
         return true;
       }
     } else if (GetPlayerVirtualWorld(playerid) == Houses[i].World && !strcmp(Houses[i].Owner, name)) {
@@ -27,11 +26,9 @@ bool cmd_lockhouse(int playerid, Cmd cmd) {
       else
         SendClientMessage(playerid, COLOR_INFO, "The door has been unlocked!");
 
-      free(name);
       return true;
     }
   }
 
-  free(name);
   return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not nearby or inside of your house!");
 }

@@ -1,9 +1,13 @@
+#include <cstring>
+
 #include "vehicle.hpp"
+#include "utils.hpp"
 
 std::array<int, 5> Sweeper;
 std::array<JOBV_BUS, 7> Bus;
 std::array<int, 4> Mower;
 std::array<T_Rent, MAX_RENTVEH> VehicleRent;
+std::array<T_Vehicle, MAX_VEHICLES> StaticVehicle;
 
 bool IsPlayerInSweeper(int playerid) {
   for (int i = 0; i < Sweeper.size(); i++) {
@@ -355,5 +359,23 @@ void SAMPGDK_CALL TC_SetSweeperToRespawn2(int timerid, void *data) {
 
 void SetSweeperToRespawn2(int delay) {
   SetTimer(delay, false, TC_SetSweeperToRespawn2, nullptr);
+}
+
+int SpawnStaticVehicle(int modelid, float x, float y, float z, float r, int color1, int color2, int respawnDelay, bool siren) {
+  int vehicleid = CreateVehicle(modelid, x, y, z, r, color1, color2, respawnDelay, siren);
+
+  if (IsVehicleConnected(vehicleid)) {
+    StaticVehicle[vehicleid].ID = vehicleid;
+    strcpy(StaticVehicle[vehicleid].Owner, "None");
+    StaticVehicle[vehicleid].Color[0] = color1;
+    StaticVehicle[vehicleid].Color[1] = color2;
+    StaticVehicle[vehicleid].Model = modelid;
+    StaticVehicle[vehicleid].Fuel = 100.0;
+    strcpy(StaticVehicle[vehicleid].Plate, GenerateNumberPlate());
+
+    SetVehicleNumberPlate(vehicleid, StaticVehicle[vehicleid].Plate);
+  }
+
+  return vehicleid;
 }
 
