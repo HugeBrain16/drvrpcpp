@@ -156,6 +156,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
     const PickupData *pickup = &WorldPickup[i];
 
     if (pickup->model > 0) {
+      std::cout << "Loading world pickups... (" << i << ")\n";
       Pickup::Create(
         pickup->model,
         pickup->type,
@@ -169,9 +170,11 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   for (size_t i = 0; i < GlobalTextLabel.size(); i++) {
     const TextLabelData *label = &GlobalTextLabel[i];
 
-    if (strlen(label->text) > 0) {
+    if (label->text.length() > 0) {
+      std::cout << "Loading world text labels... (" << i << ")\n";
+
       TextLabel::Create(
-        label->text,
+        label->text.c_str(),
         label->color,
         label->x,
         label->y,
@@ -181,6 +184,9 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
     }
   }
 
+  std::cout << "Loading world objects...\n";
+
+  /* blockage */
   Object::Create(971, 720.06940, -462.57724, 15.39299, 0.00000, 0.00000, 0.00000);
   Object::Create(971, 1042.84998, -1026.01123, 31.09643, 0.00000, 0.00000, 0.00000);
   Object::Create(971, 1025.36536, -1029.33276, 31.63884, 0.00000, 0.00000, 0.00000);
@@ -200,6 +206,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   Object::Create(971, 2071.52344, -1831.55835, 13.00516, 0.00000, 0.00000, 90.00000);
   Object::Create(971, 488.63022, -1735.32129, 10.59052, 0.00000, 0.00000, -8.46000);
 
+  /* electronic store */
   Object::Create(18869, -2236.96631, 127.79252, 1035.46399, 0.00000, 0.00000, -180.00000);
   Object::Create(18869, -2236.70630, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
   Object::Create(18869, -2236.42627, 127.79250, 1035.46399, 0.00000, 0.00000, -180.00000);
@@ -252,6 +259,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   Object::Create(18875, -2233.99170, 137.81740, 1036.40649, 0.00000, 0.00000, 0.00000);
   Object::Create(18875, -2234.25171, 137.81740, 1036.40649, 0.00000, 0.00000, 0.00000);
 
+  /* tool store */
   Object::Create(337, 132.14426, 1706.19189, 1003.14368, 177.00000, 90.00000, -97.00000, -1, 1);
   Object::Create(3761, 134.15401, 1696.84436, 1001.57410, 0.00000, 0.00000, 0.00000, -1, 1);
   Object::Create(18644, 135.82140, 1710.93713, 1001.64600, 0.00000, 90.00000, 0.00000, -1, 1);
@@ -287,12 +295,13 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   Object::Create(18641, 134.41510, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
   Object::Create(18641, 133.91510, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
   Object::Create(18641, 133.37511, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
-  Object::Create(18641, 133.37511, 1700.49414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1); 
+  Object::Create(18641, 133.37511, 1700.49414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
 
   for (size_t i = 0; i < JobVehicleSweeper.size(); i++) {
     const VehicleData *vehicle = &JobVehicleSweeper[i];
 
     if (vehicle->model > 0) {
+      std::cout << "Loading job vehicles sweeper...(" << i << ")\n";
       Sweeper[i] = CreateVehicle(
         vehicle->model,
         vehicle->x,
@@ -311,6 +320,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
     const VehicleData *vehicle = &JobVehicleBus[i];
 
     if (vehicle->model > 0) {
+      std::cout << "Loading job vehicles bus...(" << i << ")\n";
       Bus[i].ID = CreateVehicle(
         vehicle->model,
         vehicle->x,
@@ -329,6 +339,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
     const VehicleData *vehicle = &JobVehicleMower[i];
 
     if (vehicle->model > 0) {
+      std::cout << "Loading job vehicles mower...(" << i << ")\n";
       Mower[i] = CreateVehicle(
         vehicle->model,
         vehicle->x,
@@ -364,9 +375,12 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   for (size_t i = 0; i < MAX_HOUSES; i++)
     LoadHouse(i);
 
+  std::cout << "Starting timers...\n";
   SetTimer(60000, true, TC_UpdateRentTime, nullptr);
   SetTimer(100, true, TC_AltPlayerUpdate, nullptr);
   SetTimer(1000, true, TC_NoExplodingVeh, nullptr);
+
+  std::cout << "Server initialized!\n";
   return true;
 }
 

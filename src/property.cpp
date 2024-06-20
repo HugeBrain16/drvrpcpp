@@ -50,6 +50,7 @@ bool LoadHouse(int id) {
   if (!fexist(buff))
     return false;
 
+  printf("Loading house...(%d)\n", id);
   mINI::INIFile file(buff);
   mINI::INIStructure ini;
 
@@ -141,7 +142,7 @@ bool LoadBusiness(const char *type, int id) {
 
     if (!fexist(buff))
       return false;
-    printf("[BUSINESS][STORE] Loading id: %d ...\n", id);
+    printf("Loading store business...(%d)\n", id);
     mINI::INIFile file(buff);
     mINI::INIStructure ini;
 

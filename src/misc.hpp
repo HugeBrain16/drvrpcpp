@@ -1,6 +1,8 @@
 #ifndef MISC_HPP_INCLUDED
 #define MISC_HPP_INCLUDED
 
+#include <string>
+
 struct BuildingData {
   int id;
   float x;
@@ -22,7 +24,7 @@ struct VehicleData {
 };
 
 struct TextLabelData {
-  const char *text;
+  std::string text;
   unsigned int color;
   float x;
   float y;
