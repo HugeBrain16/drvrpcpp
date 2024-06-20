@@ -1,41 +1,21 @@
 #include "cmd.h"
 
 char *cmdtrim(const char *string) {
-  char *result = (char *)malloc((MAX_CMD_NAME + MAX_CMD_ARGS) * sizeof(char));
-  char *buffer = (char *)malloc((MAX_CMD_NAME + MAX_CMD_ARGS) * sizeof(char));
-  result[0] = '\0';
-  buffer[0] = '\0';
-  bool first = true;
+  while (*string == ' ') string++;
 
-  for (size_t i = 0; i < strlen(string); i++) {
-    if (string[i] != ' ' && first)
-      first = false;
-    if (!first)
-      strncat(buffer, &string[i], 1);
-  }
+  char *result = (char*) malloc((MAX_CMD_NAME + MAX_CMD_ARGS) * sizeof(char));
+  size_t end = strlen(string);
 
-  first = true;
+  while (end > 0 && string[end - 1] == ' ') end--;
+  strncpy(result, string, end);
+  result[end] = '\0';
 
-  for (size_t i = strlen(buffer); i > 0; i--) {
-    if (buffer[i] != ' ' && first)
-      first = false;
-    if (!first)
-      strncat(result, &buffer[i], 1);
-  }
-
-  size_t length = strlen(result);
-  for (size_t i = 0; i < length / 2; i++) {
-    char c = result[i];
-    result[i] = result[length - 1 - i];
-    result[length - 1 - i] = c;
-  }
-
-  free(buffer);
   return result;
 }
 
 Cmd cmdparse(const char *string) {
   Cmd result;
+  memset(&result, 0, sizeof(Cmd));
   char *str = cmdtrim(string);
 
   if (str[0] == '/') {
