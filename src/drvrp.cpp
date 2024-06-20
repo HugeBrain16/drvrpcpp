@@ -86,10 +86,9 @@ void SAMPGDK_CALL TC_AltPlayerUpdate(int timerid, void *data) {
         veh = ispv ? &Player[pid].Vehicle[vid] : &StaticVehicle[vehicleid];
 
         if (EngineOn(vehicleid)) {
-          float coeff;
+          float coeff = 0.05f * (vSpeed / 1000);
 
-          veh->Fuel = std::max(0.0f, (veh->Fuel - 0.05f) * (vSpeed / 1000));
-          coeff = 0.05f * (vSpeed / 1000);
+          veh->Fuel = std::max(0.0f, veh->Fuel - coeff);
 
           if (veh->Heat > 80) {
             if (vSpeed > veh->lastSpeed)

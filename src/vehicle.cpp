@@ -372,7 +372,7 @@ int SpawnStaticVehicle(int modelid, float x, float y, float z, float r, int colo
     StaticVehicle[vehicleid].Color[0] = color1;
     StaticVehicle[vehicleid].Color[1] = color2;
     StaticVehicle[vehicleid].Model = modelid;
-    StaticVehicle[vehicleid].Fuel = 100.0;
+    StaticVehicle[vehicleid].Fuel = 100.0f;
     strcpy(StaticVehicle[vehicleid].Plate, GenerateNumberPlate());
 
     SetVehicleNumberPlate(vehicleid, StaticVehicle[vehicleid].Plate);
