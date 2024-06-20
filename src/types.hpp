@@ -40,4 +40,16 @@ struct PickupData {
   float z;
 };
 
+struct ObjectData {
+  int model;
+  double x;
+  double y;
+  double z;
+  double rx;
+  double ry;
+  double rz;
+  int world = -1;
+  int inter = -1;
+};
+
 #endif

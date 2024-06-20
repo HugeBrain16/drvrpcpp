@@ -2,7 +2,7 @@
 #define STATICS_HPP_INCLUDED
 
 #include "player.hpp"
-#include "misc.hpp"
+#include "types.hpp"
 
 extern const int STARTER_SKINS[16];
 extern const float MissionCheckpoint[E_PlayerMission_COUNT][MAX_MISSION_CHECKPOINTS][3];
@@ -14,5 +14,6 @@ extern const std::array<VehicleData, MAX_VEHICLES> JobVehicleSweeper;
 extern const std::array<VehicleData, MAX_VEHICLES> JobVehicleBus;
 extern const std::array<VehicleData, MAX_VEHICLES> JobVehicleMower;
 extern const std::array<TextLabelData, MAX_TEXT_LABELS> GlobalTextLabel;
+extern const std::array<ObjectData, MAX_OBJECTS> WorldObject;
 
 #endif
