@@ -5,7 +5,7 @@ std::vector<std::string> parselist(const char *src, char sep) {
   std::vector<std::string> result;
   std::string buff;
 
-  for (int i = 0; i < strlen(src); i++) {
+  for (size_t i = 0; i < strlen(src); i++) {
     if (src[i] == sep && !buff.empty()) {
       result.push_back(buff);
       buff.clear();
@@ -22,7 +22,7 @@ std::vector<std::string> parselist(const char *src, char sep) {
 std::string tolist(std::vector<std::string> src, char sep) {
   std::string result;
 
-  for (int i = 0; i < src.size(); i++) {
+  for (size_t i = 0; i < src.size(); i++) {
     result += src[i];
 
     if (i != (src.size() - 1))
@@ -33,7 +33,7 @@ std::string tolist(std::vector<std::string> src, char sep) {
 }
 
 std::string appendlist(const char *src, const char *value, char sep) {
-  std::vector list = parselist(src, sep);
+  std::vector<std::string> list = parselist(src, sep);
   list.push_back(value);
 
   return tolist(list, sep);

@@ -29,8 +29,8 @@ struct T_Home {
   std::array<T_ItemSlot, MAX_HOUSE_INVENTORY> Items;
 };
 
-extern std::array<T_Home, MAX_HOUSE> Houses;
-extern std::array<T_Store, MAX_BUSINESS> Stores;
+extern std::array<T_Home, MAX_HOUSES> Houses;
+extern std::array<T_Store, MAX_BUSINESSES> Stores;
 
 bool SaveHouse(int id);
 bool LoadHouse(int id);

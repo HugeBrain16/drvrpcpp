@@ -18,10 +18,11 @@ const char *RetPname(int playerid, bool underscore) {
 
   GetPlayerName(playerid, name, MAX_PLAYER_NAME);
 
-  if (underscore)
-    for (int i = 0; i < strlen(name); i++)
-      if (name[i] == '_')
-        name[i] = ' ';
+  if (underscore) {
+    for (size_t i = 0; i < strlen(name); i++) {
+      if (name[i] == '_') name[i] = ' ';
+    }
+  }
 
   return name;
 }
@@ -159,7 +160,7 @@ int GetItemCount(int playerid) {
 }
 
 T_Item GetEquipped(int playerid) {
-  struct T_Item item;
+  struct T_Item item{};
 
   for (int i = 0; i < GetItemCount(playerid); i++) {
     if (Player[playerid].Inventory[i].Item.Equipped)
@@ -188,7 +189,7 @@ int GetHouseCount(int playerid) {
   int count = 0;
   const char *name = RetPname(playerid);
 
-  for (int i = 0; i < MAX_HOUSE; i++) {
+  for (int i = 0; i < MAX_HOUSES; i++) {
     if (!strcmp(Houses[i].Owner, name))
       count++;
   }
@@ -205,7 +206,7 @@ int GetBizCount(const char *type, int playerid) {
   int result = 0;
 
   if (!strcmp(type, "store")) {
-    for (int i = 0; i < MAX_BUSINESS; i++) {
+    for (int i = 0; i < MAX_BUSINESSES; i++) {
       if (!strcmp(Stores[i].Owner, name))
         result++;
     }
@@ -286,8 +287,7 @@ void LoadPlayer(int playerid) {
     Player[playerid].Status.hunger = std::stof(ini["status"]["hunger"]);
     Player[playerid].Status.thirst = std::stof(ini["status"]["thirst"]);
     Player[playerid].Status.energy = std::stof(ini["status"]["energy"]);
-  } catch (std::exception) {
-  }
+  } catch (const std::exception& e) {}
   Player[playerid].Flag.Admin = to_bool(ini["role"]["admin"].c_str());
   Player[playerid].Flag.Helper = to_bool(ini["role"]["helper"].c_str());
   Player[playerid].Job[Mechanic].joined =

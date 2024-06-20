@@ -5,6 +5,7 @@
 #include "globals.hpp"
 #include "dialog.hpp"
 #include "files.hpp"
+#include "utils.hpp"
 
 extern bool cmd_ssveh(int playerid, Cmd cmd);
 extern bool cmd_getmaterials(int playerid, Cmd cmd);

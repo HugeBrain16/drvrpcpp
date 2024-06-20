@@ -8,10 +8,12 @@
 using namespace Plugins::Streamer;
 
 bool cmd_buyhouse(int playerid, Cmd cmd) {
+  unused(cmd);
+
   char buff[128];
   const char *name = RetPname(playerid);
 
-  for (int i = 0; i < MAX_HOUSE; i++) {
+  for (int i = 0; i < MAX_HOUSES; i++) {
     if (IsPlayerInRangeOfPoint(playerid, 1.5, Houses[i].Pos[0], Houses[i].Pos[1], Houses[i].Pos[2])) {
       if (GetPlayerMoney(playerid) < Houses[i].Price)
         return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Not enough money!");

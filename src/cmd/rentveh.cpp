@@ -5,6 +5,8 @@
 #include "statics.hpp"
 
 bool cmd_rentveh(int playerid, Cmd cmd) {
+  unused(cmd);
+
   char buff[32];
   const char *name = RetPname(playerid);
 

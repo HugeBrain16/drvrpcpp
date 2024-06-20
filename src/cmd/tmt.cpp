@@ -3,6 +3,8 @@
 #include "player.hpp"
 
 bool cmd_tmt(int playerid, Cmd cmd) {
+  unused(cmd);
+
   if (!IsPlayerAdmin(playerid))
     return false;
   

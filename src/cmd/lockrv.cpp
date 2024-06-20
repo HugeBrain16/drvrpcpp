@@ -4,6 +4,8 @@
 #include "utils.hpp"
 
 bool cmd_lockrv(int playerid, Cmd cmd) {
+  unused(cmd);
+
   float pos[3];
   const char *name = RetPname(playerid);
 

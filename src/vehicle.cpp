@@ -10,7 +10,7 @@ std::array<T_Rent, MAX_RENTVEH> VehicleRent;
 std::array<T_Vehicle, MAX_VEHICLES> StaticVehicle;
 
 bool IsPlayerInSweeper(int playerid) {
-  for (int i = 0; i < Sweeper.size(); i++) {
+  for (size_t i = 0; i < Sweeper.size(); i++) {
     if (GetPlayerVehicleID(playerid) == Sweeper[i])
       return true;
   }
@@ -347,13 +347,15 @@ bool IsPlayerOnQuad(int playerid) {
 }
 
 void SetSweeperToRespawn() {
-  for (int i = 0; i < Sweeper.size(); i++) {
+  for (size_t i = 0; i < Sweeper.size(); i++) {
     if (!IsVehicleInUse(Sweeper[i]))
       SetVehicleToRespawn(Sweeper[i]);
   }
 }
 
 void SAMPGDK_CALL TC_SetSweeperToRespawn2(int timerid, void *data) {
+  unused(timerid, data);
+
   SetSweeperToRespawn();
 }
 

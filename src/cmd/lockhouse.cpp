@@ -4,9 +4,11 @@
 #include "property.hpp"
 
 bool cmd_lockhouse(int playerid, Cmd cmd) {
+  unused(cmd);
+
   const char *name = RetPname(playerid);
 
-  for (int i = 0; i < MAX_HOUSE; i++) {
+  for (int i = 0; i < MAX_HOUSES; i++) {
     if (GetPlayerVirtualWorld(playerid) == 0) {
       if (IsPlayerInRangeOfPoint(playerid, 1.5, Houses[i].Pos[0], Houses[i].Pos[1], Houses[i].Pos[2]) && !strcmp(Houses[i].Owner, name)) {
         Houses[i].Locked = !Houses[i].Locked;

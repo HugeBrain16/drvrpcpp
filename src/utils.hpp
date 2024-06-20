@@ -9,6 +9,8 @@
 
 extern GRand Random;
 
+template <typename... Args> inline void unused(Args&&...) {}
+
 bool fexist(const char *fname);
 bool canint(const char *str);
 int ftouch(const char *fname);

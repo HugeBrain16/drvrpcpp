@@ -4,7 +4,6 @@
 
 bool cmd_saveplayer(int playerid, Cmd cmd) {
   int target;
-  char buff[64];
 
   if (!IsPlayerAdmin(playerid))
     return false;

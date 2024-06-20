@@ -3,10 +3,12 @@
 #include "property.hpp"
 
 bool cmd_exit(int playerid, Cmd cmd) {
+  unused(cmd);
+
   if (GetPlayerInterior(playerid) == 0 && GetPlayerVirtualWorld(playerid) == 0)
     return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not inside a building!");
 
-  for (int i = 0; i < MAX_BUSINESS; i++) {
+  for (int i = 0; i < MAX_BUSINESSES; i++) {
     if (GetPlayerVirtualWorld(playerid) == Stores[i].World) {
       SetPlayerInterior(playerid, 0);
       SetPlayerVirtualWorld(playerid, 0);
@@ -15,7 +17,7 @@ bool cmd_exit(int playerid, Cmd cmd) {
     }
   }
 
-  for (int i = 0; i < MAX_HOUSE; i++) {
+  for (int i = 0; i < MAX_HOUSES; i++) {
     if (GetPlayerVirtualWorld(playerid) == Houses[i].World) {
       if (Houses[i].Locked)
         return SendClientMessage(playerid, COLOR_ERROR, "ERROR: The door is locked!");

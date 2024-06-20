@@ -3,6 +3,8 @@
 #include "player.hpp"
 
 bool cmd_inventory(int playerid, Cmd cmd) {
+  unused(cmd);
+
   char title[16];
   char *inv = GetInvText(playerid);
   sprintf(title, "Inventory (%d/%d)", GetItemCount(playerid), MAX_PLAYER_INVENTORY);

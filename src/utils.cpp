@@ -24,8 +24,7 @@ bool canint(const char *str) {
   try {
     std::stoi(str);
     result = true;
-  } catch (std::exception) {
-  }
+  } catch (const std::exception &e) {}
 
   return result;
 }
@@ -92,18 +91,18 @@ float GetVehicleSpeed(int vehicleid) {
   float pos[3];
 
   if (GetVehicleVelocity(vehicleid, &pos[0], &pos[1], &pos[2])) {
-    return sqrt((pos[0] * pos[0]) + (pos[1] * pos[1]) + (pos[2] * pos[2])) * 181.5f;
+    return static_cast<float>(sqrt((pos[0] * pos[0]) + (pos[1] * pos[1]) + (pos[2] * pos[2])) * 181.5);
   }
 
   return 0.0f;
 }
 
 void SetVehicleSpeed(int vehicleid, float speed) {
-  float velocity = speed / 181.5;
+  float velocity = speed / 181.5f;
 
   float pos[3];
   if (GetVehicleVelocity(vehicleid, &pos[0], &pos[1], &pos[2])) {
-    float magnitude = sqrt((pos[0] * pos[0]) + (pos[1] * pos[1]) + (pos[2] * pos[2]));
+    float magnitude = static_cast<float>(sqrt((pos[0] * pos[0]) + (pos[1] * pos[1]) + (pos[2] * pos[2])));
     float newVelocity = velocity / magnitude;
 
     SetVehicleVelocity(vehicleid, pos[0] * newVelocity, pos[1] * newVelocity, pos[2] * newVelocity);
@@ -116,6 +115,8 @@ void SetPlayerNextCheckpoint(int playerid, float x, float y, float z, float r) {
 }
 
 void SAMPGDK_CALL TC_FreezePlayer(int timerid, void *data) {
+  unused(timerid);
+
   int playerid = (int)data;
   TogglePlayerControllable(playerid, true);
 }
@@ -161,7 +162,7 @@ const char *GenerateNumberPlate() {
   plate[4] = ' ';
 
   for (int i = 5; i < 9; i++) {
-    plate[i] = '0' + Random.i(10);
+    plate[i] = static_cast<char>('0' + Random.i(10));
   }
   plate[9] = '\0';
 

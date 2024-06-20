@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.28)
 project(drvrpcpp)
 
 set(SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+set(CMAKE_CXX_STANDARD 11)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -14,6 +16,7 @@ include_directories(
   ${SRC}/lib/amx
 )
 
+add_compile_options(-Wall -Wextra -Wconversion)
 add_definitions(-DSAMPGDK_AMALGAMATION)
 
 add_samp_plugin(drvrp
@@ -67,3 +70,9 @@ add_samp_plugin(drvrp
   ${SRC}/cmd/saveplayer.cpp
   ${SRC}/cmd/speedlimit.cpp
 )
+
+set_source_files_properties(${SRC}/lib/streamer.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
+set_source_files_properties(${SRC}/lib/sampgdk.c PROPERTIES COMPILE_FLAGS
+  "-Wno-unused-parameter -Wno-strict-aliasing -Wno-sign-conversion -Wno-sign-compare"
+)
+set_source_files_properties(${SRC}/lib/sha256.cpp PROPERTIES COMPILE_FLAGS -Wno-conversion)

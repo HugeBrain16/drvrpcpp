@@ -4,8 +4,10 @@
 #include "utils.hpp"
 
 bool cmd_engine(int playerid, Cmd cmd) {
+  unused(cmd);
+
   int vehicleid = GetPlayerVehicleID(playerid);
-  int pid, vid;
+  int pid{}, vid{};
   bool ispv;
 
   if (!IsPlayerInAnyVehicle(playerid))
@@ -19,7 +21,7 @@ bool cmd_engine(int playerid, Cmd cmd) {
     if (ispv)
       break;
 
-    for (int y = 0; y < MAX_PLAYER_VEHICLE; y++) {
+    for (int y = 0; y < MAX_PLAYER_VEHICLES; y++) {
       if (Player[x].Vehicle[y].ID == vehicleid) {
         pid = x;
         vid = y;

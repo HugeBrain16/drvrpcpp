@@ -16,7 +16,7 @@ bool cmd_createbiz(int playerid, Cmd cmd) {
   GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
   if (sscanf(cmd.args, "%s %i", opt, &price) == 2) {
     if (!strcmp(opt, "store")) {
-      for (int i = 0; i < MAX_BUSINESS; i++) {
+      for (int i = 0; i < MAX_BUSINESSES; i++) {
         sprintf(buff, BIZ_STORE, i);
         if (!fexist(buff)) {
           strcpy(Stores[i].Owner, "None");

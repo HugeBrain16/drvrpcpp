@@ -3,7 +3,9 @@
 #include "player.hpp"
 
 bool cmd_getmaterials(int playerid, Cmd cmd) {
-  if (!IsPlayerInRangeOfPoint(playerid, 1.5, 613.0717, 1549.8906, 5.0001))
+  unused(cmd);
+
+  if (!IsPlayerInRangeOfPoint(playerid, 1.5, 613.0717f, 1549.8906f, 5.0001f))
     return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You're not nearby the material point");
   if (Player[playerid].Mission[MMaterial].active)
     return SendClientMessage(playerid, COLOR_ERROR, "ERROR: You haven't collected the previous materials yet!");
@@ -12,6 +14,6 @@ bool cmd_getmaterials(int playerid, Cmd cmd) {
   
   GivePlayerMoney(playerid, -250);
   Player[playerid].Mission[MMaterial].active = true;
-  SetPlayerCheckpoint(playerid, 2508.7227, -2118.3533, 13.5469, 8.0);
+  SetPlayerCheckpoint(playerid, 2508.7227f, -2118.3533f, 13.5469f, 8.0);
   return SendClientMessage(playerid, COLOR_INFO, "Go to the checkpoint to collect the materials");
 }

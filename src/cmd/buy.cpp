@@ -3,13 +3,15 @@
 #include "property.hpp"
 
 bool cmd_buy(int playerid, Cmd cmd) {
+  unused(cmd);
+
   char invText[256];
   char buff[64];
   invText[0] = '\0';
 
   strcat(invText, "Name\tPrice\tStock\n");
 
-  for (int i = 0; i < MAX_BUSINESS; i++) {
+  for (int i = 0; i < MAX_BUSINESSES; i++) {
     if (GetPlayerVirtualWorld(playerid) == Stores[i].World) {
       for (int t = 0; t < GetBizItemCount("store", i); t++) {
         if (Stores[i].Items[t].Quant > 0)

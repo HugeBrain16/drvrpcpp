@@ -10,8 +10,8 @@
 
 using namespace Plugins::Streamer;
 
-std::array<T_Home, MAX_HOUSE> Houses;
-std::array<T_Store, MAX_BUSINESS> Stores;
+std::array<T_Home, MAX_HOUSES> Houses;
+std::array<T_Store, MAX_BUSINESSES> Stores;
 
 bool SaveHouse(int id) {
   char buff[128];
@@ -90,7 +90,7 @@ bool LoadHouse(int id) {
 int GetHouseID(int playerid) {
   int houseid = -1;
 
-  for (int i = 0; i < MAX_HOUSE; i++) {
+  for (int i = 0; i < MAX_HOUSES; i++) {
     if (GetPlayerVirtualWorld(playerid) == Houses[i].World) {
       houseid = i;
       break;
@@ -299,11 +299,9 @@ int GetBizItemCount(const char *type, int id) {
 int GetHouseItemCount(int id) {
   int count = 0;
 
-  for (int x = 0; x < MAX_HOUSE; x++) {
-    for (int y = 0; y < MAX_HOUSE_INVENTORY; y++) {
-      if (Houses[x].Items[y].Quant > 0)
-        count++;
-    }
+  for (int y = 0; y < MAX_HOUSE_INVENTORY; y++) {
+    if (Houses[id].Items[y].Quant > 0)
+      count++;
   }
 
   return count;

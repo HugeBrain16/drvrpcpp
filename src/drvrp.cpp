@@ -24,6 +24,8 @@
 using namespace Plugins::Streamer;
 
 void SAMPGDK_CALL TC_UpdateRentTime(int timerid, void *data) {
+  unused(timerid, data);
+
   for (int i = 0; i < MAX_RENTVEH; i++) {
     if (VehicleRent[i].Rented) {
       if (VehicleRent[i].RentTime > 0) {
@@ -38,6 +40,8 @@ void SAMPGDK_CALL TC_UpdateRentTime(int timerid, void *data) {
 }
 
 void SAMPGDK_CALL TC_NoExplodingVeh(int timerid, void *data) {
+  unused(timerid, data);
+
   for (int i = 0; i < MAX_VEHICLES; i++) {
     if (IsVehicleConnected(i)) {
       if (RetVehicleHealth(i) < 250) {
@@ -50,6 +54,9 @@ void SAMPGDK_CALL TC_NoExplodingVeh(int timerid, void *data) {
 
 void SAMPGDK_CALL TC_AltPlayerUpdate(int timerid, void *data) {
   /* less aggressive (low update rate) player update */
+
+  unused(timerid, data);
+
   char txt[128];
   int vid, pid;
   bool ispv;
@@ -66,7 +73,7 @@ void SAMPGDK_CALL TC_AltPlayerUpdate(int timerid, void *data) {
         ispv = false;
 
         for (int x = 0; x < MAX_PLAYERS && !ispv; x++) {
-          for (int y = 0; y < MAX_PLAYER_VEHICLE; y++) {
+          for (int y = 0; y < MAX_PLAYER_VEHICLES; y++) {
             if (vehicleid == Player[x].Vehicle[y].ID) {
               pid = x;
               vid = y;
@@ -145,51 +152,34 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   SetDeathDropAmount(0);
   ShowNameTags(1);
 
-  for (int i = 0; i < MAX_PICKUPS; i++) {
-    if (WorldPickup[i][0] != 0 ||
-        WorldPickup[i][2] != 0 ||
-        WorldPickup[i][3] != 0 ||
-        WorldPickup[i][4] != 0) {
-      Pickup::Create(WorldPickup[i][0],
-        WorldPickup[i][1],
-        WorldPickup[i][2],
-        WorldPickup[i][3],
-        WorldPickup[i][4]
+  for (size_t i = 0; i < WorldPickup.size(); i++) {
+    const PickupData *pickup = &WorldPickup[i];
+
+    if (pickup->model > 0) {
+      Pickup::Create(
+        pickup->model,
+        pickup->type,
+        pickup->x,
+        pickup->y,
+        pickup->z
       );
     }
-  } 
+  }
 
-  TextLabel::Create("[Gun Parts Crafting Point]", 0xFFFFFFAA, -12.9450, 2350.7974, 24.1406, 30.0);
-  TextLabel::Create("[Materials Point]\n/getmaterials to buy 3 materials for {008000}$250", 0xFFF157AA, 613.0717, 1549.8906, 5.0001, 30.0);
-  TextLabel::Create("[Gun Maker Point]", 0xFF0000AA, -752.7269, -131.6847, 65.8281, 10.0);
-  TextLabel::Create("[Gun Maker Job Point]", 0xFFFFFFAA, -757.2897, -133.7420, 65.8281, 10.0);
-  TextLabel::Create("[Sweeper Sidejob]", 0xFFF157AA, 1313.1063, -875.3223, 39.5781, 10.0);
-  TextLabel::Create("[Product Point]\n/getproduct to buy 1 product for {008000}$150", 0xFFF157AA, 2197.5491, -2661.5784, 13.5469, 30.0);
-  TextLabel::Create("[Rent Vehicle Point]\n/rentveh to rent Faggio\nfor {008000}$60{FFF157} in {00AAAA}30 minutes", 0xFFF157FF, 1562.2598, -2300.6880, 13.5650, 30.0);
-  TextLabel::Create("[Rent Vehicle Point]\n/rentveh to rent Faggio\nfor {008000}$60{FFF157} in {00AAAA}30 minutes", 0xFFF157FF, 1926.1271, -1788.2462, 13.3906, 30.0);
-  TextLabel::Create("[Mechanic Job Point]", 0xFF0000AA, 2139.5847, -1733.7576, 17.2891, 10.0);
-  TextLabel::Create("[Mechanic Duty Point]", 0xFFF157AA, 2914.6526, -802.2943, 11.0469, 10.0);
-  TextLabel::Create("[Component Point]\n/getcomponents to buy 10 components for {008000}$200", 0xFFF157AA, 2286.4944, -2013.8217, 13.5442, 10.0);
-  TextLabel::Create("[Electronic Buy Point]", 0x008000AA, -2237.0012, 130.1817, 1035.4141, 10.0);
-  TextLabel::Create("[Tool Buy Point]", 0x008000AA, 148.2934, 1698.5463, 1002.1363, 10.0);
-  TextLabel::Create("[Electronic Exit Point]", 0xFFFFFFAA, -2240.7827, 137.1640, 1035.4141, 10.0);
-  TextLabel::Create("[Tool Exit Point]", 0xFFFFFFAA, 140.8128, 1710.8275, 1002.1363, 10.0);
-  TextLabel::Create("[Clothes Exit Point]", 0xFFFFFFAA, 161.3896, -96.8334, 1001.8047, 10.0);
-  TextLabel::Create("[Clothes Buy Point]", 0x008000AA, 161.6251, -83.2522, 1001.8047, 10.0);
-  TextLabel::Create("[Bus Driver Sidejob]", 0xFFF157AA, 1271.9991, -2038.5074, 59.0828, 10.0);
-  TextLabel::Create("[Mower Sidejob]", 0xFFF157AA, 764.2607, -1304.5879, 13.5613, 10.0);
-  TextLabel::Create("[Dealership Point]", 0xAAAAAAAA, 542.3506, -1292.6149, 17.2422, 10.0);
-  TextLabel::Create("[Vehicle Delete Point]", 0xFF0000AA, -1880.4781, -1681.4792, 21.7500, 10.0);
-  TextLabel::Create("[Drivers License Center]\n{AAAAAA}Type /enter to enter", 0xFFFFFFAA, 1111.5823, -1796.9653, 16.5938, 10.0);
-  TextLabel::Create("[Drivers License Point]\nType {FFFF00}/getlicense{FFFFFF} to get driving license for {008000}$100", 0xAAAAAAAA, 1490.2838, 1305.7026, 1093.2964, 10.0);
-  TextLabel::Create("[Loading Bay Point]\n{AAAAAA}Type /loadtruck to load truck", 0xFFFFFFAA, -14.6017, -270.7789, 5.4297, 10.0);
-  TextLabel::Create("[Trucker Job Point]", 0xFF0000AA, -49.8569, -269.3626, 6.6332, 10.0);
-  TextLabel::Create("[Fishing Area]\nRadius 50.0", 0xFFFFFFAA, 383.3073, -2080.4578, 7.8359, 10.0);
-  TextLabel::Create("[Bait Shop]", 0xFFFF00AA, 359.3359, -2032.1019, 7.8359, 10.0);
-  TextLabel::Create("[Sell Fish Point]", 0xFFFFFFAA, -50.6201, -233.6625, 6.7646, 10.0);
-  TextLabel::Create("[Restaurant Buy Point]", 0x008000AA, 450.4843, -83.6519, 999.5547, 10.0);
-  TextLabel::Create("[Restaurant Exit Point]", 0xFFFFFFAA, 460.5504, -88.6155, 999.5547, 10.0);
-  TextLabel::Create("[Drivers License Center Exit Point]", 0xFFFFFFAA, 1494.4346, 1303.5786, 1093.2891, 10.0);
+  for (size_t i = 0; i < GlobalTextLabel.size(); i++) {
+    const TextLabelData *label = &GlobalTextLabel[i];
+
+    if (strlen(label->text) > 0) {
+      TextLabel::Create(
+        label->text,
+        label->color,
+        label->x,
+        label->y,
+        label->z,
+        label->range
+      );
+    }
+  }
 
   Object::Create(971, 720.06940, -462.57724, 15.39299, 0.00000, 0.00000, 0.00000);
   Object::Create(971, 1042.84998, -1026.01123, 31.09643, 0.00000, 0.00000, 0.00000);
@@ -297,46 +287,81 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
   Object::Create(18641, 134.41510, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
   Object::Create(18641, 133.91510, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
   Object::Create(18641, 133.37511, 1700.11414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
-  Object::Create(18641, 133.37511, 1700.49414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1);
+  Object::Create(18641, 133.37511, 1700.49414, 1001.64520, 0.00000, 90.00000, 0.00000, -1, 1); 
 
-  Sweeper[0] = CreateVehicle(574, 1306.1726, -875.7529, 39.3935, -90.0000, 1, 0, 100, false);
-  Sweeper[1] = CreateVehicle(574, 1306.1902, -873.5123, 39.3935, -90.0000, 1, 0, 100, false);
-  Sweeper[2] = CreateVehicle(574, 1306.1666, -871.2911, 39.3935, -90.0000, 1, 0, 100, false);
-  Sweeper[3] = CreateVehicle(574, 1306.1667, -869.1107, 39.3935, -90.0000, 1, 0, 100, false);
-  Sweeper[4] = CreateVehicle(574, 1306.1678, -866.8701, 39.3935, -90.0000, 1, 0, 100, false);
+  for (size_t i = 0; i < JobVehicleSweeper.size(); i++) {
+    const VehicleData *vehicle = &JobVehicleSweeper[i];
 
-  Bus[0].ID = CreateVehicle(437, 1244.9365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
-  Bus[1].ID = CreateVehicle(437, 1250.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
-  Bus[2].ID = CreateVehicle(437, 1255.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
-  Bus[3].ID = CreateVehicle(437, 1260.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
-  Bus[4].ID = CreateVehicle(437, 1265.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
-  Bus[5].ID = CreateVehicle(437, 1270.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
-  Bus[6].ID = CreateVehicle(437, 1275.0365, -2013.4041, 59.8729, 180.0000, 6, 7, 100, false);
+    if (vehicle->model > 0) {
+      Sweeper[i] = CreateVehicle(
+        vehicle->model,
+        vehicle->x,
+        vehicle->y,
+        vehicle->z,
+        vehicle->rotation,
+        vehicle->color1,
+        vehicle->color2,
+        vehicle->delay,
+        vehicle->siren
+      );
+    }
+  }
 
-  Mower[0] = CreateVehicle(572, 767.8790, -1307.7762, 13.1944, 0.0000, 3, 0, 100, false);
-  Mower[1] = CreateVehicle(572, 771.1190, -1307.7563, 13.1944, 0.0000, 3, 0, 100, false);
-  Mower[2] = CreateVehicle(572, 774.1190, -1307.7563, 13.1944, 0.0000, 3, 0, 100, false);
-  Mower[3] = CreateVehicle(572, 777.3190, -1307.7563, 13.1944, 0.0000, 3, 0, 100, false);
+  for (size_t i = 0; i < JobVehicleBus.size(); i++) {
+    const VehicleData *vehicle = &JobVehicleBus[i];
+
+    if (vehicle->model > 0) {
+      Bus[i].ID = CreateVehicle(
+        vehicle->model,
+        vehicle->x,
+        vehicle->y,
+        vehicle->z,
+        vehicle->rotation,
+        vehicle->color1,
+        vehicle->color2,
+        vehicle->delay,
+        vehicle->siren
+      );
+    }
+  }
+
+  for (size_t i = 0; i < JobVehicleMower.size(); i++) {
+    const VehicleData *vehicle = &JobVehicleMower[i];
+
+    if (vehicle->model > 0) {
+      Mower[i] = CreateVehicle(
+        vehicle->model,
+        vehicle->x,
+        vehicle->y,
+        vehicle->z,
+        vehicle->rotation,
+        vehicle->color1,
+        vehicle->color2,
+        vehicle->delay,
+        vehicle->siren
+      );
+    }
+  }
 
   char plateBuffer[10];
 
-  for (int i = 0; i < Bus.size(); i++) {
+  for (size_t i = 0; i < Bus.size(); i++) {
     sprintf(plateBuffer, "BUS-%d", i + 1);
     SetVehicleNumberPlate(Bus[i].ID, plateBuffer);
   }
 
-  for (int i = 0; i < Sweeper.size(); i++) {
+  for (size_t i = 0; i < Sweeper.size(); i++) {
     sprintf(plateBuffer, "SWEEP-%d", i + 1);
     SetVehicleNumberPlate(Sweeper[i], plateBuffer);
   }
 
-  for (int i = 0; i < Bus.size(); i++)
+  for (size_t i = 0; i < Bus.size(); i++)
     strcpy(Bus[i].Owner, "None");
 
-  for (int i = 0; i < MAX_BUSINESS; i++)
+  for (size_t i = 0; i < MAX_BUSINESSES; i++)
     LoadBusiness("store", i);
 
-  for (int i = 0; i < MAX_HOUSE; i++)
+  for (size_t i = 0; i < MAX_HOUSES; i++)
     LoadHouse(i);
 
   SetTimer(60000, true, TC_UpdateRentTime, nullptr);
@@ -380,7 +405,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
     SavePlayer(playerid);
     SaveInventory(playerid);
 
-    for (int i = 0; i < MAX_HOUSE; i++) {
+    for (int i = 0; i < MAX_HOUSES; i++) {
       if (!strcmp(name, Houses[i].Owner)) {
         SaveHouse(i);
       }
@@ -390,6 +415,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDeath(int playerid, int killerid, int reason) {
+  unused(killerid, reason);
+
   Player[playerid].Flag.Dead = true;
   return true;
 }
@@ -405,104 +432,13 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
     if (!Player[playerid].Flag.NewAccount) {
       LoadPlayer(playerid);
       LoadInventory(playerid);
-    }
-
-    RemoveBuildingForPlayer(playerid, 1302, 0.0, 0.0, 0.0, 6000.0);
-    RemoveBuildingForPlayer(playerid, 1209, 0.0, 0.0, 0.0, 6000.0);
-    RemoveBuildingForPlayer(playerid, 955, 0.0, 0.0, 0.0, 6000.0);
-    RemoveBuildingForPlayer(playerid, 1775, 0.0, 0.0, 0.0, 6000.0);
-    RemoveBuildingForPlayer(playerid, 1776, 0.0, 0.0, 0.0, 6000.0);
-    RemoveBuildingForPlayer(playerid, 956, 0.0, 0.0, 0.0, 6000.0);
-    RemoveBuildingForPlayer(playerid, 2489, -2237.6328, 127.5547, 1035.6875, 0.25);
-    RemoveBuildingForPlayer(playerid, 2481, -2237.6328, 127.5781, 1036.7969, 0.25);
-    RemoveBuildingForPlayer(playerid, 2490, -2237.6406, 127.5547, 1036.3984, 0.25);
-    RemoveBuildingForPlayer(playerid, 2495, -2237.6406, 127.5547, 1036.0391, 0.25);
-    RemoveBuildingForPlayer(playerid, 2488, -2237.6328, 127.5547, 1035.3281, 0.25);
-    RemoveBuildingForPlayer(playerid, 2483, -2236.5078, 127.5625, 1036.6094, 0.25);
-    RemoveBuildingForPlayer(playerid, 2504, -2235.0859, 127.6406, 1035.8516, 0.25);
-    RemoveBuildingForPlayer(playerid, 2503, -2235.5703, 127.6406, 1035.8516, 0.25);
-    RemoveBuildingForPlayer(playerid, 2501, -2234.6328, 127.6406, 1035.8516, 0.25);
-    RemoveBuildingForPlayer(playerid, 2513, -2236.5313, 127.6641, 1035.5703, 0.25);
-    RemoveBuildingForPlayer(playerid, 2490, -2229.7188, 127.5547, 1036.5391, 0.25);
-    RemoveBuildingForPlayer(playerid, 2495, -2229.0938, 127.5547, 1036.5313, 0.25);
-    RemoveBuildingForPlayer(playerid, 2477, -2223.5703, 128.2422, 1036.4922, 0.25);
-    RemoveBuildingForPlayer(playerid, 928, -2225.1406, 128.2969, 1034.6719, 0.25);
-    RemoveBuildingForPlayer(playerid, 926, -2224.2500, 128.4141, 1034.6563, 0.25);
-    RemoveBuildingForPlayer(playerid, 14558, -2223.3438, 128.4219, 1035.2031, 0.25);
-    RemoveBuildingForPlayer(playerid, 2484, -2240.8125, 131.0781, 1036.3047, 0.25);
-    RemoveBuildingForPlayer(playerid, 2362, -2238.3281, 129.2656, 1035.4453, 0.25);
-    RemoveBuildingForPlayer(playerid, 2497, -2237.2266, 131.1328, 1037.6875, 0.25);
-    RemoveBuildingForPlayer(playerid, 2493, -2233.3516, 129.2734, 1035.4063, 0.25);
-    RemoveBuildingForPlayer(playerid, 2510, -2233.6406, 129.2344, 1037.8906, 0.25);
-    RemoveBuildingForPlayer(playerid, 2494, -2233.6094, 129.5234, 1035.4063, 0.25);
-    RemoveBuildingForPlayer(playerid, 2492, -2233.1016, 129.5234, 1035.4063, 0.25);
-    RemoveBuildingForPlayer(playerid, 2491, -2233.1016, 129.7734, 1034.4063, 0.25);
-    RemoveBuildingForPlayer(playerid, 2496, -2233.3516, 129.7734, 1035.4063, 0.25);
-    RemoveBuildingForPlayer(playerid, 2486, -2234.4531, 131.7500, 1035.4063, 0.25);
-    RemoveBuildingForPlayer(playerid, 2459, -2234.7031, 131.9922, 1034.3984, 0.25);
-    RemoveBuildingForPlayer(playerid, 2484, -2233.9922, 132.1016, 1036.8281, 0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2234.1250, 132.1172, 1035.1484, 0.25);
-    RemoveBuildingForPlayer(playerid, 2487, -2226.1641, 129.7500, 1037.5469, 0.25);
-    RemoveBuildingForPlayer(playerid, 2499, -2231.4766, 130.3203, 1037.6953, 0.25);
-    RemoveBuildingForPlayer(playerid, 2471, -2228.0547, 130.3281, 1035.8125, 0.25);
-    RemoveBuildingForPlayer(playerid, 2470, -2227.4141, 130.6875, 1036.0391, 0.25);
-    RemoveBuildingForPlayer(playerid, 2469, -2228.4688, 130.7188, 1036.0391, 0.25);
-    RemoveBuildingForPlayer(playerid, 2503, -2223.5391, 131.0703, 1035.8438, 0.25);
-    RemoveBuildingForPlayer(playerid, 2501, -2223.5391, 131.6406, 1035.8438, 0.25);
-    RemoveBuildingForPlayer(playerid, 2469, -2237.9063, 133.1953, 1036.0391, 0.25);
-    RemoveBuildingForPlayer(playerid, 2470, -2237.8750, 134.2500, 1036.0391, 0.25);
-    RemoveBuildingForPlayer(playerid, 2487, -2238.1719, 135.7969, 1037.5469, 0.25);
-    RemoveBuildingForPlayer(playerid, 2504, -2236.8516, 137.8906, 1035.8516, 0.25);
-    RemoveBuildingForPlayer(playerid, 2501, -2237.3047, 137.8906, 1035.8516, 0.25);
-    RemoveBuildingForPlayer(playerid, 2486, -2233.4766, 132.4453, 1035.8047, 0.25);
-    RemoveBuildingForPlayer(playerid, 2498, -2231.9453, 132.8125, 1037.5703, 0.25);
-    RemoveBuildingForPlayer(playerid, 2512, -2235.9922, 133.4375, 1037.8438, 0.25);
-    RemoveBuildingForPlayer(playerid, 2459, -2234.7031, 135.0625, 1034.3984, 0.25);
-    RemoveBuildingForPlayer(playerid, 2464, -2233.9844, 135.1641, 1036.1953, 0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2234.1250, 135.8672, 1035.1484, 0.25);
-    RemoveBuildingForPlayer(playerid, 2498, -2232.3281, 136.2422, 1037.5703, 0.25);
-    RemoveBuildingForPlayer(playerid, 2471, -2235.3672, 137.8516, 1035.9063, 0.25);
-    RemoveBuildingForPlayer(playerid, 2503, -2236.3672, 137.8906, 1035.8516, 0.25);
-    RemoveBuildingForPlayer(playerid, 2466, -2235.2969, 137.9609, 1036.5547, 0.25);
-    RemoveBuildingForPlayer(playerid, 2513, -2235.1875, 137.9297, 1036.2500, 0.25);
-    RemoveBuildingForPlayer(playerid, 2467, -2235.5391, 137.9609, 1034.4141, 0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2235.4453, 138.2109, 1035.3984, 0.25);
-    RemoveBuildingForPlayer(playerid, 2511, -2229.2734, 132.2813, 1037.8594, 0.25);
-    RemoveBuildingForPlayer(playerid, 2503, -2223.5391, 132.4375, 1035.8438, 0.25);
-    RemoveBuildingForPlayer(playerid, 2501, -2223.5391, 133.0078, 1035.8438, 0.25);
-    RemoveBuildingForPlayer(playerid, 2486, -2228.5469, 133.3984, 1035.6641, 0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2227.8984, 133.7656, 1035.5156, 0.25);
-    RemoveBuildingForPlayer(playerid, 2484, -2228.0938, 133.7734, 1036.8281, 0.25);
-    RemoveBuildingForPlayer(playerid, 2486, -2227.5703, 134.0938, 1035.2813, 0.25);
-    RemoveBuildingForPlayer(playerid, 2512, -2226.4922, 134.0156, 1037.8438, 0.25);
-    RemoveBuildingForPlayer(playerid, 2499, -2230.1563, 135.2578, 1037.6953, 0.25);
-    RemoveBuildingForPlayer(playerid, 2478, -2226.3750, 136.9922, 1034.8281, 0.25);
-    RemoveBuildingForPlayer(playerid, 2474, -2229.6797, 137.1406, 1036.0391, 0.25);
-    RemoveBuildingForPlayer(playerid, 2465, -2227.9219, 137.0234, 1036.8594, 0.25);
-    RemoveBuildingForPlayer(playerid, 2480, -2226.3672, 137.0781, 1036.4922, 0.25);
-    RemoveBuildingForPlayer(playerid, 5043, 1843.3672, -1856.3203, 13.8750, 0.25);
-    RemoveBuildingForPlayer(playerid, 5340, 2644.8594, -2039.2344, 14.0391, 0.25);
-    RemoveBuildingForPlayer(playerid, 5422, 2071.4766, -1831.4219, 14.5625, 0.25);
-    RemoveBuildingForPlayer(playerid, 5856, 1024.9844, -1029.3516, 33.1953, 0.25);
-    RemoveBuildingForPlayer(playerid, 5779, 1041.3516, -1025.9297, 32.6719, 0.25);
-    RemoveBuildingForPlayer(playerid, 6400, 488.2813, -1734.6953, 12.3906, 0.25);
-    RemoveBuildingForPlayer(playerid, 10575, -2716.3516, 217.4766, 5.3828, 0.25);
-    RemoveBuildingForPlayer(playerid, 11313, -1935.8594, 239.5313, 35.3516, 0.25);
-    RemoveBuildingForPlayer(playerid, 11319, -1904.5313, 277.8984, 42.9531, 0.25);
-    RemoveBuildingForPlayer(playerid, 9625, -2425.7266, 1027.9922, 52.2813, 0.25);
-    RemoveBuildingForPlayer(playerid, 9093, 2386.6563, 1043.6016, 11.5938, 0.25);
-    RemoveBuildingForPlayer(playerid, 8957, 2393.7656, 1483.6875, 12.7109, 0.25);
-    RemoveBuildingForPlayer(playerid, 7709, 2006.0000, 2303.7266, 11.3125, 0.25);
-    RemoveBuildingForPlayer(playerid, 7891, 1968.7422, 2162.4922, 12.0938, 0.25);
-    RemoveBuildingForPlayer(playerid, 3294, -1420.5469, 2591.1563, 57.7422, 0.25);
-    RemoveBuildingForPlayer(playerid, 3294, -100.0000, 1111.4141, 21.6406, 0.25);
-    RemoveBuildingForPlayer(playerid, 13028, 720.0156, -462.5234, 16.8594, 0.25);
+    } 
 
     /* == Vehicle Status UI == */
     /* Background Box */
-    Player[playerid].VehicleIndicator.MainBox = CreatePlayerTextDraw(playerid, 634.503662, 365.500000, "MainBox");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.MainBox, 0.000000, 7.914812);
-    PlayerTextDrawTextSize(playerid, Player[playerid].VehicleIndicator.MainBox, 531.645690, 0.000000);
+    Player[playerid].VehicleIndicator.MainBox = CreatePlayerTextDraw(playerid, 634.503662f, 365.500000f, "MainBox");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.MainBox, 0.000000f, 7.914812f);
+    PlayerTextDrawTextSize(playerid, Player[playerid].VehicleIndicator.MainBox, 531.645690f, 0.000000f);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.MainBox, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.MainBox, 0);
     PlayerTextDrawUseBox(playerid, Player[playerid].VehicleIndicator.MainBox, true);
@@ -512,8 +448,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
     PlayerTextDrawFont(playerid, Player[playerid].VehicleIndicator.MainBox, 0);
 
     /* Speed */
-    Player[playerid].VehicleIndicator.Speed = CreatePlayerTextDraw(playerid, 538.331176, 364.583190, "Speed:");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Speed, 0.287891, 1.570831);
+    Player[playerid].VehicleIndicator.Speed = CreatePlayerTextDraw(playerid, 538.331176f, 364.583190f, "Speed:");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Speed, 0.287891f, 1.570831f);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.Speed, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.Speed, -1);
     PlayerTextDrawSetShadow(playerid, Player[playerid].VehicleIndicator.Speed, 0);
@@ -523,8 +459,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
     PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Speed, 1);
 
     /* Health */
-    Player[playerid].VehicleIndicator.Health = CreatePlayerTextDraw(playerid, 537.862792, 382.083465, "Health:");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Health, 0.279457, 1.594162);
+    Player[playerid].VehicleIndicator.Health = CreatePlayerTextDraw(playerid, 537.862792f, 382.083465f, "Health:");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Health, 0.279457f, 1.594162f);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.Health, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.Health, -1);
     PlayerTextDrawSetShadow(playerid, Player[playerid].VehicleIndicator.Health, 0);
@@ -534,8 +470,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
     PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Health, 1);
 
     /* Fuel */
-    Player[playerid].VehicleIndicator.Fuel = CreatePlayerTextDraw(playerid, 536.925964, 400.166625, "Fuel:");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Fuel, 0.447188, 1.477498);
+    Player[playerid].VehicleIndicator.Fuel = CreatePlayerTextDraw(playerid, 536.925964f, 400.166625f, "Fuel:");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Fuel, 0.447188f, 1.477498f);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.Fuel, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.Fuel, -1);
     PlayerTextDrawSetShadow(playerid, Player[playerid].VehicleIndicator.Fuel, 0);
@@ -545,8 +481,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
     PlayerTextDrawSetProportional(playerid, Player[playerid].VehicleIndicator.Fuel, 1);
 
     /* Temperature */
-    Player[playerid].VehicleIndicator.Heat = CreatePlayerTextDraw(playerid, 536.457214, 418.833374, "Temp:");
-    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Heat, 0.414860, 1.459999);
+    Player[playerid].VehicleIndicator.Heat = CreatePlayerTextDraw(playerid, 536.457214f, 418.833374f, "Temp:");
+    PlayerTextDrawLetterSize(playerid, Player[playerid].VehicleIndicator.Heat, 0.414860f, 1.459999f);
     PlayerTextDrawAlignment(playerid, Player[playerid].VehicleIndicator.Heat, 1);
     PlayerTextDrawColor(playerid, Player[playerid].VehicleIndicator.Heat, -1);
     PlayerTextDrawSetShadow(playerid, Player[playerid].VehicleIndicator.Heat, 0);
@@ -558,16 +494,16 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerSpawn(int playerid) {
 
   if (Player[playerid].Flag.NewAccount) {
     GivePlayerMoney(playerid, 500);
-    Player[playerid].Status.hunger = 100.0;
-    Player[playerid].Status.thirst = 100.0;
-    Player[playerid].Status.energy = 100.0;
+    Player[playerid].Status.hunger = 100.0f;
+    Player[playerid].Status.thirst = 100.0f;
+    Player[playerid].Status.energy = 100.0f;
     Player[playerid].Flag.NewAccount = false;
   }
 
   if (Player[playerid].Flag.Dead) {
     Player[playerid].Flag.Dead = false;
-    SetPlayerPos(playerid, 2035.5458,-1413.7125,16.9922);
-    SetPlayerFacingAngle(playerid, 132.4680);
+    SetPlayerPos(playerid, 2035.5458f, -1413.7125f, 16.9922f);
+    SetPlayerFacingAngle(playerid, 132.4680f);
     SetPlayerInterior(playerid, 0);
     SetPlayerVirtualWorld(playerid, 0);
     FreezePlayer(playerid, 3000);
@@ -600,8 +536,10 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnVehicleCreated(int vehicleid) {
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerRequestClass(int playerid, int classid) {
+  unused(classid);
+
   if (Player[playerid].Flag.NewAccount) {
-    SetSpawnInfo(playerid, 0, STARTER_SKINS[Random.i(16)], 1643.9750, -2332.2830, 13.5469, 0.0455, 0, 0, 0, 0, 0, 0);
+    SetSpawnInfo(playerid, 0, STARTER_SKINS[Random.i(16)], 1643.9750f, -2332.2830f, 13.5469f, 0.0455f, 0, 0, 0, 0, 0, 0);
     SpawnPlayer(playerid);
   } else {
     float pos[4];
@@ -637,10 +575,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
   }
   case DIALOG_HOUSE_STORAGE_STORE: {
     Player[playerid].DataState.housestore = listitem;
-    ShowPlayerDialog(playerid, DIALOG_HOUSE_STORAGE_STORE_AMOUNT,
-                     DIALOG_STYLE_INPUT, "Storage - Store - Amount",
-                     "Enter the amount of item(s) to store:", "Confirm",
-                     "Cancel");
+    ShowPlayerDialog(playerid, DIALOG_HOUSE_STORAGE_STORE_AMOUNT, DIALOG_STYLE_INPUT, "Storage - Store - Amount", "Enter the amount of item(s) to store:", "Confirm", "Cancel");
     break;
   }
   case DIALOG_HOUSE_STORAGE_TAKE_AMOUNT: {
@@ -652,15 +587,18 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
     if (canint(inputtext)) {
       int amount = std::stoi(inputtext);
 
-      if (Houses[houseid].Items[slotid].Quant < amount)
-        return SendClientMessage(playerid, COLOR_ERROR,
-                                 "ERROR: Insufficient amount!");
+      if (Houses[houseid].Items[slotid].Quant < amount) {
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Insufficient amount!");
+        break;
+      }
 
       AddItem(playerid, item, amount);
       AddHouseItem(houseid, item, -amount);
-    } else
-      return SendClientMessage(playerid, COLOR_ERROR,
-                               "ERROR: The amount has to be numeric!");
+      break;
+    } else {
+      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: The amount has to be numeric!");
+      break;
+    }
   }
   case DIALOG_HOUSE_STORAGE_STORE_AMOUNT: {
     int slotid = Player[playerid].DataState.housestore;
@@ -671,22 +609,25 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
     if (canint(inputtext)) {
       int amount = std::stoi(inputtext);
 
-      if (Player[playerid].Inventory[slotid].Quant < amount)
-        return SendClientMessage(playerid, COLOR_ERROR,
-                                 "ERROR: Insufficient amount!");
+      if (Player[playerid].Inventory[slotid].Quant < amount) {
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Insufficient amount!");
+        break;
+      }
 
       AddHouseItem(houseid, item, amount);
       AddItem(playerid, item, -amount);
-    } else
-      return SendClientMessage(playerid, COLOR_ERROR,
-                               "ERROR: The amount has to be numeric!");
+      break;
+    } else {
+      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: The amount has to be numeric!");
+      break;
+    }
   }
   case DIALOG_STORE: {
-    for (int i = 0; i < MAX_BUSINESS; i++) {
+    for (int i = 0; i < MAX_BUSINESSES; i++) {
       if (GetPlayerVirtualWorld(playerid) == Stores[i].World) {
         if (GetPlayerMoney(playerid) < Stores[i].Items[listitem].Item.Price)
-          return SendClientMessage(playerid, COLOR_ERROR,
-                                   "ERROR: Not enough money!");
+          return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Not enough money!");
+
         AddItem(playerid, Stores[i].Items[listitem].Item, 1);
         AddBizItem("store", playerid, Stores[i].Items[listitem].Item, -1);
         GivePlayerMoney(playerid, -Stores[i].Items[listitem].Item.Price);
@@ -764,17 +705,16 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
   return true;
 }
 
-PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandPerformed(int playerid,
-                                                        const char *cmdtext,
-                                                        bool success) {
+PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandPerformed(int playerid, const char *cmdtext, bool success) {
+  unused(cmdtext);
+
   if (!success)
-    SendClientMessage(playerid, COLOR_ERROR,
-                      "ERROR: Unknown command, type /help or ask in /qna.");
+    SendClientMessage(playerid, COLOR_ERROR, "ERROR: Unknown command, type /help or ask in /qna.");
+
   return 1;
 }
 
-PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
-                                                   const char *cmdtext) {
+PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid, const char *cmdtext) {
   Cmd cmd = cmdparse(cmdtext);
   
   if (!strcmp(cmd.name, "ssveh")) {
@@ -835,8 +775,9 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
   return false;
 }
 
-PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerEnterVehicle(int playerid, int vehicleid,
-                                                    bool ispassenger) {
+PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerEnterVehicle(int playerid, int vehicleid, bool ispassenger) {
+  unused(ispassenger);
+
   for (int i = 0; i < MAX_RENTVEH; i++) {
     if (VehicleRent[i].ID == vehicleid && VehicleRent[i].Locked) {
       GameTextForPlayer(playerid, "~r~Locked", 1000, 4);
@@ -846,9 +787,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerEnterVehicle(int playerid, int vehicleid,
   return 1;
 }
 
-PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerExitVehicle(int playerid,
-                                                   int vehicleid) {
-  for (int i = 0; i < MAX_PLAYER_VEHICLE; i++) {
+PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerExitVehicle(int playerid, int vehicleid) {
+  for (int i = 0; i < MAX_PLAYER_VEHICLES; i++) {
     if (vehicleid == Player[playerid].Vehicle[i].ID) {
       if (Player[playerid].Vehicle[i].Lock &&
           GetVehicleType(Player[playerid].Vehicle[i].ID) != VTYPE_BIKE) {
@@ -961,279 +901,278 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerUpdate(int playerid) {
   return 1;
 }
 
-PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerTakeDamage(int playerid, int issuerid,
-                                                  float amount, int weaponid,
-                                                  int bodypart) {
+PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerTakeDamage(int playerid, int issuerid, float amount, int weaponid, int bodypart) {
+  unused(issuerid, amount);
+
   float HP;
   GetPlayerHealth(playerid, &HP);
 
   if (weaponid == WEAPON_COLT45) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 10);
+      SetPlayerHealth(playerid, HP - 10.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 25);
+      SetPlayerHealth(playerid, HP - 25.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 8);
+      SetPlayerHealth(playerid, HP - 8.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 8);
+      SetPlayerHealth(playerid, HP - 8.0f);
     }
   }
 
   if (weaponid == WEAPON_SILENCED) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, (HP - 13));
+      SetPlayerHealth(playerid, HP - 13.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, (HP - 27));
+      SetPlayerHealth(playerid, HP - 27.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, (HP - 11));
+      SetPlayerHealth(playerid, HP - 11.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, (HP - 11));
+      SetPlayerHealth(playerid, HP - 11.0f);
     }
   }
 
   if (weaponid == WEAPON_DEAGLE) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 20);
+      SetPlayerHealth(playerid, HP - 20.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 32);
+      SetPlayerHealth(playerid, HP - 32.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 13);
+      SetPlayerHealth(playerid, HP - 13.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 13);
+      SetPlayerHealth(playerid, HP - 13.0f);
     }
   }
 
   if (weaponid == WEAPON_TEC9) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 8);
+      SetPlayerHealth(playerid, HP - 8.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 15);
+      SetPlayerHealth(playerid, HP - 15.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 4);
+      SetPlayerHealth(playerid, HP - 4.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 4);
+      SetPlayerHealth(playerid, HP - 4.0f);
     }
   }
 
   if (weaponid == WEAPON_UZI) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 9);
+      SetPlayerHealth(playerid, HP - 9.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 18);
+      SetPlayerHealth(playerid, HP - 18.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 5);
+      SetPlayerHealth(playerid, HP - 5.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 5);
+      SetPlayerHealth(playerid, HP - 5.0f);
     }
   }
 
   if (weaponid == WEAPON_MP5) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 10);
+      SetPlayerHealth(playerid, HP - 10.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 25);
+      SetPlayerHealth(playerid, HP - 25.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 8);
+      SetPlayerHealth(playerid, HP - 8.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 8);
+      SetPlayerHealth(playerid, HP - 8.0f);
     }
   }
 
   if (weaponid == WEAPON_SHOTGUN) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 30);
+      SetPlayerHealth(playerid, HP - 30.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 48);
+      SetPlayerHealth(playerid, HP - 48.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 15);
+      SetPlayerHealth(playerid, HP - 15.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 15);
+      SetPlayerHealth(playerid, HP - 15.0f);
     }
   }
 
   if (weaponid == WEAPON_SAWEDOFF) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 38);
+      SetPlayerHealth(playerid, HP - 38.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 53);
+      SetPlayerHealth(playerid, HP - 53.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 20);
+      SetPlayerHealth(playerid, HP - 20.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 20);
+      SetPlayerHealth(playerid, HP - 20.0f);
     }
   }
 
   if (weaponid == WEAPON_SHOTGSPA) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 40);
+      SetPlayerHealth(playerid, HP - 40.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 56);
+      SetPlayerHealth(playerid, HP - 56.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 20);
+      SetPlayerHealth(playerid, HP - 20.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 20);
+      SetPlayerHealth(playerid, HP - 20.0f);
     }
   }
 
   if (weaponid == WEAPON_AK47) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 40);
+      SetPlayerHealth(playerid, HP - 40.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 56);
+      SetPlayerHealth(playerid, HP - 56.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 24);
+      SetPlayerHealth(playerid, HP - 24.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 24);
+      SetPlayerHealth(playerid, HP - 24.0f);
     }
   }
 
   if (weaponid == WEAPON_M4) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 43);
+      SetPlayerHealth(playerid, HP - 43.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 60);
+      SetPlayerHealth(playerid, HP - 60.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 25);
+      SetPlayerHealth(playerid, HP - 25.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 25);
+      SetPlayerHealth(playerid, HP - 25.0f);
     }
   }
 
   if (weaponid == WEAPON_RIFLE) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 60);
+      SetPlayerHealth(playerid, HP - 60.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 80);
+      SetPlayerHealth(playerid, HP - 80.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 28);
+      SetPlayerHealth(playerid, HP - 28.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 28);
+      SetPlayerHealth(playerid, HP - 28.0f);
     }
   }
 
   if (weaponid == WEAPON_SNIPER) {
     if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 75);
+      SetPlayerHealth(playerid, HP - 75.0f);
     }
     if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 90);
+      SetPlayerHealth(playerid, HP - 90.0f);
     }
     if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 30);
+      SetPlayerHealth(playerid, HP - 30.0f);
     }
     if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 30);
+      SetPlayerHealth(playerid, HP - 30.0f);
     }
   }
   return 1;
 }
 
-PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerWeaponShot(int playerid, int weaponid,
-                                                  int hittype, int hitid,
-                                                  float fX, float fY,
-                                                  float fZ) {
+PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerWeaponShot(int playerid, int weaponid, int hittype, int hitid, float fX, float fY, float fZ) {
+  unused(playerid, fX, fY, fZ);
+
   if (hittype == BULLET_HIT_TYPE_VEHICLE) {
     float HP;
     GetVehicleHealth(hitid, &HP);
 
     if (weaponid == WEAPON_COLT45) {
-      SetVehicleHealth(hitid, (HP - 35.0));
+      SetVehicleHealth(hitid, HP - 35.0f);
     }
     if (weaponid == WEAPON_SILENCED) {
-      SetVehicleHealth(hitid, (HP - 38.0));
+      SetVehicleHealth(hitid, HP - 38.0f);
     }
     if (weaponid == WEAPON_DEAGLE) {
-      SetVehicleHealth(hitid, (HP - 45.0));
+      SetVehicleHealth(hitid, HP - 45.0f);
     }
     if (weaponid == WEAPON_SHOTGUN) {
-      SetVehicleHealth(hitid, (HP - 100.0));
+      SetVehicleHealth(hitid, HP - 100.0f);
     }
     if (weaponid == WEAPON_SAWEDOFF) {
-      SetVehicleHealth(hitid, (HP - 130.0));
+      SetVehicleHealth(hitid, HP - 130.0f);
     }
     if (weaponid == WEAPON_SHOTGSPA) {
-      SetVehicleHealth(hitid, (HP - 180.0));
+      SetVehicleHealth(hitid, HP - 180.0f);
     }
     if (weaponid == WEAPON_TEC9) {
-      SetVehicleHealth(hitid, (HP - 40.0));
+      SetVehicleHealth(hitid, HP - 40.0f);
     }
     if (weaponid == WEAPON_UZI) {
-      SetVehicleHealth(hitid, (HP - 48.0));
+      SetVehicleHealth(hitid, HP - 48.0f);
     }
     if (weaponid == WEAPON_MP5) {
-      SetVehicleHealth(hitid, (HP - 53.0));
+      SetVehicleHealth(hitid, HP - 53.0f);
     }
     if (weaponid == WEAPON_AK47) {
-      SetVehicleHealth(hitid, (HP - 68.0));
+      SetVehicleHealth(hitid, HP - 68.0f);
     }
     if (weaponid == WEAPON_M4) {
-      SetVehicleHealth(hitid, (HP - 70.0));
+      SetVehicleHealth(hitid, HP - 70.0f);
     }
     if (weaponid == WEAPON_RIFLE) {
-      SetVehicleHealth(hitid, (HP - 80.0));
+      SetVehicleHealth(hitid, HP - 80.0f);
     }
     if (weaponid == WEAPON_SNIPER) {
-      SetVehicleHealth(hitid, (HP - 95.0));
+      SetVehicleHealth(hitid, HP - 95.0f);
     }
     if (weaponid == WEAPON_BRASSKNUCKLE) {
-      SetVehicleHealth(hitid, (HP - 8.0));
+      SetVehicleHealth(hitid, HP - 8.0f);
     }
     if (weaponid == WEAPON_ROCKETLAUNCHER) {
-      SetVehicleHealth(hitid, (HP - 1000.0));
+      SetVehicleHealth(hitid, HP - 1000.0f);
     }
     if (weaponid == WEAPON_MINIGUN) {
-      SetVehicleHealth(hitid, (HP - 10.0));
+      SetVehicleHealth(hitid, HP - 10.0f);
     }
     if (weaponid == WEAPON_GOLFCLUB) {
-      SetVehicleHealth(hitid, (HP - 12.0));
+      SetVehicleHealth(hitid, HP - 12.0f);
     }
     if (weaponid == WEAPON_SHOVEL) {
-      SetVehicleHealth(hitid, (HP - 12.0));
+      SetVehicleHealth(hitid, HP - 12.0f);
     }
     if (weaponid == WEAPON_NITESTICK) {
-      SetVehicleHealth(hitid, (HP - 10.0));
+      SetVehicleHealth(hitid, HP - 10.0f);
     }
     if (weaponid == WEAPON_BAT) {
-      SetVehicleHealth(hitid, (HP - 12.0));
+      SetVehicleHealth(hitid, HP - 12.0f);
     }
     if (weaponid == WEAPON_HEATSEEKER) {
-      SetVehicleHealth(hitid, (HP - 1000.0));
+      SetVehicleHealth(hitid, HP - 1000.0f);
     }
   }
   return 1;

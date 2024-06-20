@@ -14,7 +14,7 @@ bool cmd_createhouse(int playerid, Cmd cmd) {
 
   GetPlayerPos(playerid, &pos[0], &pos[1], &pos[2]);
   if (sscanf(cmd.args, "%i", &price) == 1) {
-    for (int i = 0; i < MAX_HOUSE; i++) {
+    for (int i = 0; i < MAX_HOUSES; i++) {
       sprintf(buff, BD_HOUSE, i);
       if (!fexist(buff)) {
         strcpy(Houses[i].Owner, "None");
