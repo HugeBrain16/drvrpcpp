@@ -11,3 +11,5 @@ make
 ```
 
 the result `drvrp.so` is in `build` folder.
+
+This gamemode requires [streamer](https://github.com/samp-incognito/samp-streamer-plugin) plugin
