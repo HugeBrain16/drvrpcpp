@@ -2,11 +2,11 @@
 
 bool IsStackable(T_Item item) {
   switch (item.Type) {
-  case ITEM_9MM:
+  case ItemType::PISTOL:
     return false;
-  case ITEM_RIFLE:
+  case ItemType::RIFLE:
     return false;
-  case ITEM_SHOTGUN:
+  case ItemType::SHOTGUN:
     return false;
   default:
     return true;

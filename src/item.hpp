@@ -1,20 +1,20 @@
 #ifndef ITEM_HPP_INCLUDED
 #define ITEM_HPP_INCLUDED
 
-enum E_ItemType {
-  ITEM_EMPTY,
-  ITEM_SPRUNK,
-  ITEM_BREAD,
-  ITEM_WATER,
-  ITEM_MATERIAL,
-  ITEM_9MM,
-  ITEM_RIFLE,
-  ITEM_SHOTGUN
+enum class ItemType {
+  EMPTY,
+  SPRUNK,
+  BREAD,
+  WATER,
+  MATERIAL,
+  PISTOL,
+  RIFLE,
+  SHOTGUN
 };
 
 struct T_Item {
   char Name[64];
-  E_ItemType Type;
+  ItemType Type;
   int Price;
   bool Equipped;
   int Durability;

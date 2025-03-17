@@ -16,7 +16,7 @@ include_directories(
   ${SRC}/lib/amx
 )
 
-add_compile_options(-Wall -Wextra -Wconversion)
+add_compile_options(-Wall -Wextra -Wconversion -Wno-sign-conversion)
 add_definitions(-DSAMPGDK_AMALGAMATION)
 
 add_samp_plugin(drvrp
@@ -73,6 +73,6 @@ add_samp_plugin(drvrp
 
 set_source_files_properties(${SRC}/lib/streamer.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
 set_source_files_properties(${SRC}/lib/sampgdk.c PROPERTIES COMPILE_FLAGS
-  "-Wno-unused-parameter -Wno-strict-aliasing -Wno-sign-conversion -Wno-sign-compare"
+  "-Wno-unused-parameter -Wno-strict-aliasing -Wno-sign-compare"
 )
 set_source_files_properties(${SRC}/lib/sha256.cpp PROPERTIES COMPILE_FLAGS -Wno-conversion)

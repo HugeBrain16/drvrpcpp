@@ -54,7 +54,7 @@ bool SaveInventory(int playerid) {
   for (int i = 0; i < 8; i++) {
     sprintf(buff, "slot%d", i);
     ini[buff]["name"] = Player[playerid].Inventory[i].Item.Name;
-    ini[buff]["type"] = std::to_string(Player[playerid].Inventory[i].Item.Type);
+    ini[buff]["type"] = std::to_string(static_cast<int>(Player[playerid].Inventory[i].Item.Type));
     ini[buff]["quant"] = std::to_string(Player[playerid].Inventory[i].Quant);
     ini[buff]["equipped"] = std::to_string((int)Player[playerid].Inventory[i].Item.Equipped);
     ini[buff]["durability"] = std::to_string(Player[playerid].Inventory[i].Item.Durability);
@@ -81,7 +81,7 @@ bool LoadInventory(int playerid) {
   for (int i = 0; i < 8; i++) {
     sprintf(buff, "slot%d", i);
     strcpy(Player[playerid].Inventory[i].Item.Name, ini[buff]["name"].c_str());
-    Player[playerid].Inventory[i].Item.Type = E_ItemType(std::stoi(ini[buff]["type"]));
+    Player[playerid].Inventory[i].Item.Type = static_cast<ItemType>(std::stoi(ini[buff]["type"]));
     Player[playerid].Inventory[i].Quant = std::stoi(ini[buff]["quant"]);
     Player[playerid].Inventory[i].Item.Equipped = (bool)std::stoi(ini[buff]["equipped"]);
     Player[playerid].Inventory[i].Item.Durability = std::stoi(ini[buff]["durability"]);
@@ -95,10 +95,9 @@ void ItemSlotInfo(int playerid, int target, int slot) {
   if (Player[target].Inventory[slot].Quant != 0) {
     sprintf(buff, "[Slot: %d]", slot);
     SendClientMessage(playerid, 0xFFFF00, buff);
-    sprintf(buff, "%s: %dx", Player[target].Inventory[slot].Item.Name,
-            Player[target].Inventory[slot].Quant);
+    sprintf(buff, "%s: %dx", Player[target].Inventory[slot].Item.Name, Player[target].Inventory[slot].Quant);
     SendClientMessage(playerid, 0xFFFF00, buff);
-    sprintf(buff, "Type: %d", Player[target].Inventory[slot].Item.Type);
+    sprintf(buff, "Type: %d", static_cast<int>(Player[target].Inventory[slot].Item.Type));
     SendClientMessage(playerid, 0xFFFF00, buff);
   } else
     SendClientMessage(playerid, COLOR_INFO, "Slot is empty!");
@@ -112,7 +111,7 @@ void UpdateItem(int playerid) {
   int eslot = -1;
 
   for (int i = 0; i < 8; i++) {
-    if (Player[playerid].Inventory[i].Quant <= 0 || Player[playerid].Inventory[i].Item.Type == ITEM_EMPTY) {
+    if (Player[playerid].Inventory[i].Quant <= 0 || Player[playerid].Inventory[i].Item.Type == ItemType::EMPTY) {
       EmptyItemSlot(playerid, i);
       eslot = i;
     } else if (eslot > -1) {
@@ -137,8 +136,7 @@ bool AddItem(int playerid, T_Item item, int quant) {
       Player[playerid].Inventory[i].Quant = quant;
       Player[playerid].Inventory[i].Item.Durability = item.Durability;
       break;
-    } else if (!strcmp(Player[playerid].Inventory[i].Item.Name, item.Name) &&
-               Player[playerid].Inventory[i].Item.Type == item.Type) {
+    } else if (!strcmp(Player[playerid].Inventory[i].Item.Name, item.Name) && Player[playerid].Inventory[i].Item.Type == item.Type) {
       Player[playerid].Inventory[i].Quant += quant;
       break;
     }
@@ -290,11 +288,9 @@ void LoadPlayer(int playerid) {
   } catch (const std::exception& e) {}
   Player[playerid].Flag.Admin = to_bool(ini["role"]["admin"].c_str());
   Player[playerid].Flag.Helper = to_bool(ini["role"]["helper"].c_str());
-  Player[playerid].Job[Mechanic].joined =
-      to_bool(ini["job"]["mechanic"].c_str());
+  Player[playerid].Job[Mechanic].joined = to_bool(ini["job"]["mechanic"].c_str());
   Player[playerid].Job[Trucker].joined = to_bool(ini["job"]["trucker"].c_str());
-  Player[playerid].Job[Gunmaker].joined =
-      to_bool(ini["job"]["gunmaker"].c_str());
+  Player[playerid].Job[Gunmaker].joined = to_bool(ini["job"]["gunmaker"].c_str());
   Player[playerid].Job[Taxi].joined = to_bool(ini["job"]["taxi"].c_str());
   FreezePlayer(playerid, 1000);
   SetPlayerInterior(playerid, std::stoi(ini["position"]["int"]));

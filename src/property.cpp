@@ -33,7 +33,7 @@ bool SaveHouse(int id) {
   for (int i = 0; i < 64; i++) {
     sprintf(buff, "slot%d", i);
     ini[buff]["name"] = Houses[id].Items[i].Item.Name;
-    ini[buff]["type"] = std::to_string(Houses[id].Items[i].Item.Type);
+    ini[buff]["type"] = std::to_string(static_cast<int>(Houses[id].Items[i].Item.Type));
     ini[buff]["quant"] = std::to_string(Houses[id].Items[i].Quant);
     ini[buff]["durability"] =
         std::to_string((int)Houses[id].Items[i].Item.Durability);
@@ -66,7 +66,7 @@ bool LoadHouse(int id) {
   for (int i = 0; i < 64; i++) {
     sprintf(buff, "slot%d", i);
     strcpy(Houses[id].Items[i].Item.Name, ini[buff]["name"].c_str());
-    Houses[id].Items[i].Item.Type = E_ItemType(std::stoi(ini[buff]["type"]));
+    Houses[id].Items[i].Item.Type = static_cast<ItemType>(std::stoi(ini[buff]["type"]));
     Houses[id].Items[i].Quant = std::stoi(ini[buff]["quant"]);
     Houses[id].Items[i].Item.Durability = std::stoi(ini[buff]["durability"]);
   }
@@ -123,7 +123,7 @@ bool SaveBusiness(const char *type, int id) {
     for (int i = 0; i < 8; i++) {
       sprintf(buff, "shelf%d", i);
       ini[buff]["name"] = Stores[id].Items[i].Item.Name;
-      ini[buff]["type"] = std::to_string(Stores[id].Items[i].Item.Type);
+      ini[buff]["type"] = std::to_string(static_cast<int>(Stores[id].Items[i].Item.Type));
       ini[buff]["price"] = std::to_string(Stores[id].Items[i].Item.Price);
       ini[buff]["stock"] = std::to_string(Stores[id].Items[i].Quant);
     }
@@ -159,8 +159,7 @@ bool LoadBusiness(const char *type, int id) {
     for (int i = 0; i < 8; i++) {
       sprintf(buff, "shelf%d", i);
       strcpy(Stores[id].Items[i].Item.Name, ini[buff]["name"].c_str());
-      Stores[id].Items[i].Item.Type =
-          E_ItemType(std::stoi(ini[buff]["type"]));
+      Stores[id].Items[i].Item.Type = static_cast<ItemType>(std::stoi(ini[buff]["type"]));
       Stores[id].Items[i].Item.Price = std::stoi(ini[buff]["price"]);
       Stores[id].Items[i].Quant = std::stoi(ini[buff]["stock"]);
     }
@@ -200,12 +199,11 @@ void UpdateHouseItem(int id) {
   int eslot = -1;
 
   for (int i = 0; i < 8; i++) {
-    if (Houses[id].Items[i].Quant <= 0 || Houses[id].Items[i].Item.Type == ITEM_EMPTY) {
+    if (Houses[id].Items[i].Quant <= 0 || Houses[id].Items[i].Item.Type == ItemType::EMPTY) {
       EmptyHouseSlot(id, i);
       eslot = i;
     } else if (eslot > -1) {
-      memcpy(&Houses[id].Items[eslot], &Houses[id].Items[i],
-             sizeof(Houses[id].Items));
+      memcpy(&Houses[id].Items[eslot], &Houses[id].Items[i], sizeof(Houses[id].Items));
       EmptyHouseSlot(id, i);
       eslot = i;
     }
@@ -217,12 +215,11 @@ void UpdateBizItem(const char *type, int id) {
 
   if (!strcmp(type, "store")) {
     for (int i = 0; i < 8; i++) {
-      if (Stores[id].Items[i].Quant <= 0 || Stores[id].Items[i].Item.Type == ITEM_EMPTY) {
+      if (Stores[id].Items[i].Quant <= 0 || Stores[id].Items[i].Item.Type == ItemType::EMPTY) {
         EmptyBizSlot(type, id, i);
         eslot = i;
       } else if (eslot > -1) {
-        memcpy(&Stores[id].Items[eslot], &Stores[id].Items[i],
-               sizeof(Stores[id].Items));
+        memcpy(&Stores[id].Items[eslot], &Stores[id].Items[i], sizeof(Stores[id].Items));
         EmptyBizSlot(type, id, i);
         eslot = i;
       }
@@ -250,8 +247,7 @@ bool AddHouseItem(int id, T_Item item, int quant) {
       Houses[id].Items[i].Quant = quant;
       Houses[id].Items[i].Item.Durability = item.Durability;
       break;
-    } else if (!strcmp(Houses[id].Items[i].Item.Name, item.Name) &&
-               Houses[id].Items[i].Item.Type == item.Type) {
+    } else if (!strcmp(Houses[id].Items[i].Item.Name, item.Name) && Houses[id].Items[i].Item.Type == item.Type) {
       Houses[id].Items[i].Quant += quant;
       break;
     }
@@ -270,8 +266,7 @@ bool AddBizItem(const char *type, int id, T_Item item, int quant) {
         Stores[id].Items[i].Item.Price = item.Price;
         Stores[id].Items[i].Quant = quant;
         break;
-      } else if (!strcmp(Stores[id].Items[i].Item.Name, item.Name) &&
-                 Stores[id].Items[i].Item.Type == item.Type) {
+      } else if (!strcmp(Stores[id].Items[i].Item.Name, item.Name) && Stores[id].Items[i].Item.Type == item.Type) {
         Stores[id].Items[i].Quant += quant;
         break;
       }
@@ -312,17 +307,17 @@ void RestockStoreBiz(int id) {
   struct T_Item item;
 
   strcpy(item.Name, "Bread");
-  item.Type = ITEM_BREAD;
+  item.Type = ItemType::BREAD;
   item.Price = 2;
   AddBizItem("store", id, item, 30);
 
   strcpy(item.Name, "Sprunk");
-  item.Type = ITEM_SPRUNK;
+  item.Type = ItemType::SPRUNK;
   item.Price = 3;
   AddBizItem("store", id, item, 30);
 
   strcpy(item.Name, "Water");
-  item.Type = ITEM_WATER;
+  item.Type = ItemType::WATER;
   item.Price = 1;
   AddBizItem("store", id, item, 30);
 }
@@ -333,10 +328,9 @@ void HouseSlotInfo(int playerid, int target, int slot) {
   if (Houses[target].Items[slot].Quant != 0) {
     sprintf(buff, "[Slot: %d]", slot);
     SendClientMessage(playerid, 0xFFFF00, buff);
-    sprintf(buff, "%s: %dx", Houses[target].Items[slot].Item.Name,
-            Houses[target].Items[slot].Quant);
+    sprintf(buff, "%s: %dx", Houses[target].Items[slot].Item.Name, Houses[target].Items[slot].Quant);
     SendClientMessage(playerid, 0xFFFF00, buff);
-    sprintf(buff, "Type: %d", Houses[target].Items[slot].Item.Type);
+    sprintf(buff, "Type: %d", static_cast<int>(Houses[target].Items[slot].Item.Type));
     SendClientMessage(playerid, 0xFFFF00, buff);
   } else
     SendClientMessage(playerid, COLOR_INFO, "Slot is empty!");

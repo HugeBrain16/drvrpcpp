@@ -800,7 +800,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerEnterCheckpoint(int playerid) {
   } else if (Player[playerid].Mission[MMaterial].active) {
     struct T_Item item;
     strcpy(item.Name, "Material");
-    item.Type = ITEM_MATERIAL;
+    item.Type = ItemType::MATERIAL;
 
     DisablePlayerCheckpoint(playerid);
     Player[playerid].Mission[MMaterial].active = false;
@@ -827,199 +827,137 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerTakeDamage(int playerid, int issuerid, fl
   float HP;
   GetPlayerHealth(playerid, &HP);
 
-  if (weaponid == WEAPON_COLT45) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 10.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 25.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 8.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 8.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_SILENCED) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 13.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 27.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 11.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 11.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_DEAGLE) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 20.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 32.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 13.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 13.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_TEC9) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 8.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 15.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 4.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 4.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_UZI) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 9.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 18.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 5.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 5.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_MP5) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 10.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 25.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 8.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 8.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_SHOTGUN) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 30.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 48.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 15.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 15.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_SAWEDOFF) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 38.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 53.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 20.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 20.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_SHOTGSPA) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 40.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 56.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 20.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 20.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_AK47) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 40.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 56.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 24.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 24.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_M4) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 43.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 60.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 25.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 25.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_RIFLE) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 60.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 80.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 28.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 28.0f);
-    }
-  }
-
-  if (weaponid == WEAPON_SNIPER) {
-    if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN) {
-      SetPlayerHealth(playerid, HP - 75.0f);
-    }
-    if (bodypart == BODY_PART_HEAD) {
-      SetPlayerHealth(playerid, HP - 90.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM) {
-      SetPlayerHealth(playerid, HP - 30.0f);
-    }
-    if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG) {
-      SetPlayerHealth(playerid, HP - 30.0f);
-    }
+  switch (weaponid) {
+    case WEAPON_COLT45:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 10.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 25.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 8.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 8.0f);
+      break;
+    case WEAPON_SILENCED:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 13.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 27.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 11.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 11.0f);
+      break;
+    case WEAPON_DEAGLE:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 20.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 32.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 13.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 13.0f);
+      break;
+    case WEAPON_TEC9:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 8.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 15.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 4.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 4.0f);
+      break;
+    case WEAPON_UZI:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 9.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 18.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 5.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 5.0f);
+      break;
+    case WEAPON_MP5:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 10.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 25.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 8.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 8.0f);
+      break;
+    case WEAPON_SHOTGUN:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 30.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 48.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 15.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 15.0f);
+      break;
+    case WEAPON_SAWEDOFF:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 38.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 53.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 20.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 20.0f);
+      break;
+    case WEAPON_SHOTGSPA:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 40.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 56.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 20.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 20.0f);
+      break;
+    case WEAPON_AK47:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 40.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 56.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 24.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 24.0f);
+      break;
+    case WEAPON_M4:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 43.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 60.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 25.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 25.0f);
+      break;
+    case WEAPON_RIFLE:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 60.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 80.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 28.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 28.0f);
+      break;
+    case WEAPON_SNIPER:
+      if (bodypart == BODY_PART_TORSO || bodypart == BODY_PART_GROIN)
+        SetPlayerHealth(playerid, HP - 75.0f);
+      else if (bodypart == BODY_PART_HEAD)
+        SetPlayerHealth(playerid, HP - 90.0f);
+      else if (bodypart == BODY_PART_LEFT_ARM || bodypart == BODY_PART_RIGHT_ARM)
+        SetPlayerHealth(playerid, HP - 30.0f);
+      else if (bodypart == BODY_PART_LEFT_LEG || bodypart == BODY_PART_RIGHT_LEG)
+        SetPlayerHealth(playerid, HP - 30.0f);
+      break;
   }
   return 1;
 }
@@ -1031,68 +969,70 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerWeaponShot(int playerid, int weaponid, in
     float HP;
     GetVehicleHealth(hitid, &HP);
 
-    if (weaponid == WEAPON_COLT45) {
-      SetVehicleHealth(hitid, HP - 35.0f);
-    }
-    if (weaponid == WEAPON_SILENCED) {
-      SetVehicleHealth(hitid, HP - 38.0f);
-    }
-    if (weaponid == WEAPON_DEAGLE) {
-      SetVehicleHealth(hitid, HP - 45.0f);
-    }
-    if (weaponid == WEAPON_SHOTGUN) {
-      SetVehicleHealth(hitid, HP - 100.0f);
-    }
-    if (weaponid == WEAPON_SAWEDOFF) {
-      SetVehicleHealth(hitid, HP - 130.0f);
-    }
-    if (weaponid == WEAPON_SHOTGSPA) {
-      SetVehicleHealth(hitid, HP - 180.0f);
-    }
-    if (weaponid == WEAPON_TEC9) {
-      SetVehicleHealth(hitid, HP - 40.0f);
-    }
-    if (weaponid == WEAPON_UZI) {
-      SetVehicleHealth(hitid, HP - 48.0f);
-    }
-    if (weaponid == WEAPON_MP5) {
-      SetVehicleHealth(hitid, HP - 53.0f);
-    }
-    if (weaponid == WEAPON_AK47) {
-      SetVehicleHealth(hitid, HP - 68.0f);
-    }
-    if (weaponid == WEAPON_M4) {
-      SetVehicleHealth(hitid, HP - 70.0f);
-    }
-    if (weaponid == WEAPON_RIFLE) {
-      SetVehicleHealth(hitid, HP - 80.0f);
-    }
-    if (weaponid == WEAPON_SNIPER) {
-      SetVehicleHealth(hitid, HP - 95.0f);
-    }
-    if (weaponid == WEAPON_BRASSKNUCKLE) {
-      SetVehicleHealth(hitid, HP - 8.0f);
-    }
-    if (weaponid == WEAPON_ROCKETLAUNCHER) {
-      SetVehicleHealth(hitid, HP - 1000.0f);
-    }
-    if (weaponid == WEAPON_MINIGUN) {
-      SetVehicleHealth(hitid, HP - 10.0f);
-    }
-    if (weaponid == WEAPON_GOLFCLUB) {
-      SetVehicleHealth(hitid, HP - 12.0f);
-    }
-    if (weaponid == WEAPON_SHOVEL) {
-      SetVehicleHealth(hitid, HP - 12.0f);
-    }
-    if (weaponid == WEAPON_NITESTICK) {
-      SetVehicleHealth(hitid, HP - 10.0f);
-    }
-    if (weaponid == WEAPON_BAT) {
-      SetVehicleHealth(hitid, HP - 12.0f);
-    }
-    if (weaponid == WEAPON_HEATSEEKER) {
-      SetVehicleHealth(hitid, HP - 1000.0f);
+    switch (weaponid) {
+      case WEAPON_COLT45:
+        SetVehicleHealth(hitid, HP - 35.0f);
+        break;
+      case WEAPON_SILENCED:
+        SetVehicleHealth(hitid, HP - 38.0f);
+        break;
+      case WEAPON_DEAGLE:
+        SetVehicleHealth(hitid, HP - 45.0f);
+        break;
+      case WEAPON_SHOTGUN:
+        SetVehicleHealth(hitid, HP - 100.0f);
+        break;
+      case WEAPON_SAWEDOFF:
+        SetVehicleHealth(hitid, HP - 130.0f);
+        break;
+      case WEAPON_SHOTGSPA:
+        SetVehicleHealth(hitid, HP - 180.0f);
+        break;
+      case WEAPON_TEC9:
+        SetVehicleHealth(hitid, HP - 40.0f);
+        break;
+      case WEAPON_UZI:
+        SetVehicleHealth(hitid, HP - 48.0f);
+        break;
+      case WEAPON_MP5:
+        SetVehicleHealth(hitid, HP - 53.0f);
+        break;
+      case WEAPON_AK47:
+        SetVehicleHealth(hitid, HP - 68.0f);
+        break;
+      case WEAPON_M4:
+        SetVehicleHealth(hitid, HP - 70.0f);
+        break;
+      case WEAPON_RIFLE:
+        SetVehicleHealth(hitid, HP - 80.0f);
+        break;
+      case WEAPON_SNIPER:
+        SetVehicleHealth(hitid, HP - 95.0f);
+        break;
+      case WEAPON_BRASSKNUCKLE:
+        SetVehicleHealth(hitid, HP - 8.0f);
+        break;
+      case WEAPON_ROCKETLAUNCHER:
+        SetVehicleHealth(hitid, HP - 1000.0f);
+        break;
+      case WEAPON_MINIGUN:
+        SetVehicleHealth(hitid, HP - 10.0f);
+        break;
+      case WEAPON_GOLFCLUB:
+        SetVehicleHealth(hitid, HP - 12.0f);
+        break;
+      case WEAPON_SHOVEL:
+        SetVehicleHealth(hitid, HP - 12.0f);
+        break;
+      case WEAPON_NITESTICK:
+        SetVehicleHealth(hitid, HP - 10.0f);
+        break;
+      case WEAPON_BAT:
+        SetVehicleHealth(hitid, HP - 12.0f);
+        break;
+      case WEAPON_HEATSEEKER:
+        SetVehicleHealth(hitid, HP - 1000.0f);
+        break;
     }
   }
   return 1;
