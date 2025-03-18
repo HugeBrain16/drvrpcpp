@@ -4,12 +4,13 @@
 // see http://create.stephan-brumme.com/disclaimer.html
 //
 
+#include <stdlib.h>
 #include "sha256.h"
 
 // big endian architectures need #define __BYTE_ORDER __BIG_ENDIAN
-#ifndef _MSC_VER
-#include <endian.h>
-#endif
+// #ifndef _MSC_VER
+// #include <endian.h>
+// #endif
 
 //#define SHA2_224_SEED_VECTOR
 

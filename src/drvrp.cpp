@@ -1049,3 +1049,88 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
 PLUGIN_EXPORT void PLUGIN_CALL Unload() { sampgdk::Unload(); }
 
 PLUGIN_EXPORT void PLUGIN_CALL ProcessTick() { sampgdk::ProcessTick(); }
+
+bool OnDynamicObjectMoved(int objectid) {
+  unused(objectid);
+  return 1;
+}
+
+bool OnPlayerEditDynamicObject(int playerid, int objectid, int response, float x, float y, float z, float rx, float ry, float rz) {
+  unused(playerid, objectid, response, x, y, z, rx, ry, rz);
+  return 1;
+}
+
+bool OnPlayerSelectDynamicObject(int playerid, int objectid, int modelid, float x, float y, float z) {
+  unused(playerid, objectid, modelid, x, y, z);
+  return 1;
+}
+
+bool OnPlayerShootDynamicObject(int playerid, int weaponid, int objectid, float x, float y, float z) {
+  unused(playerid, weaponid, objectid, x, y, z);
+  return 1;
+}
+
+bool OnPlayerPickUpDynamicPickup(int playerid, int pickupid) {
+  unused(playerid, pickupid);
+  return 1;
+}
+
+bool OnPlayerEnterDynamicCP(int playerid, int checkpointid) {
+	unused(playerid, checkpointid);
+  return 1;
+}
+
+bool OnPlayerLeaveDynamicCP(int playerid, int checkpointid) {
+	unused(playerid, checkpointid);
+  return 1;
+}
+
+bool OnPlayerEnterDynamicRaceCP(int playerid, int checkpointid) {
+  unused(playerid, checkpointid);
+  return 1;
+}
+
+bool OnPlayerLeaveDynamicRaceCP(int playerid, int checkpointid) {
+  unused(playerid, checkpointid);
+  return 1;
+}
+
+bool OnPlayerEnterDynamicArea(int playerid, int areaid) {
+  unused(playerid, areaid);
+  return 1;
+}
+
+bool OnPlayerLeaveDynamicArea(int playerid, int areaid) {
+	unused(playerid, areaid);
+  return 1;
+}
+
+bool OnPlayerGiveDamageDynamicActor(int playerid, int actorid, float amount, int weaponid, int bodypart) {
+	unused(playerid, actorid, amount, weaponid, bodypart);
+  return 1;
+}
+
+bool OnDynamicActorStreamIn(int actorid, int forplayerid) {
+	unused(actorid, forplayerid);
+  return 1;
+}
+
+bool OnDynamicActorStreamOut(int actorid, int forplayerid) {
+  unused(actorid, forplayerid);
+  return 1;
+}
+
+bool Streamer_OnItemStreamIn(int type, int id) {
+  unused(type, id);
+  return 1;
+}
+
+bool Streamer_OnItemStreamOut(int type, int id) {
+	unused(type, id);
+  return 1;
+}
+
+bool Streamer_OnPluginError(const char error[]) {
+  unused(error);
+  return 1;
+}

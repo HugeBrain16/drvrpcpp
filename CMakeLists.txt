@@ -16,7 +16,7 @@ include_directories(
   ${SRC}/lib/amx
 )
 
-add_compile_options(-Wall -Wextra -Wconversion -Wno-sign-conversion)
+add_compile_options(-Wall -Wextra -Wconversion -Wno-sign-conversion -Wno-maybe-uninitialized)
 add_definitions(-DSAMPGDK_AMALGAMATION)
 
 add_samp_plugin(drvrp
