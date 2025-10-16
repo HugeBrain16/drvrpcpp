@@ -50,17 +50,22 @@
   #define WIN32
 #endif
 
-#if defined WIN32 || defined _WIN32 || defined __WIN32__
-  #define SAMPGDK_LINUX 0
-  #define SAMPGDK_WINDOWS 1
-#endif
-
-#if defined __linux__ || defined __linux || defined linux
-  #if !defined LINUX
-    #define LINUX
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+  #ifndef SAMPGDK_WINDOWS
+    #define SAMPGDK_WINDOWS 1
   #endif
-  #define SAMPGDK_LINUX 1
-  #define SAMPGDK_WINDOWS 0
+  #ifndef SAMPGDK_LINUX
+    #define SAMPGDK_LINUX 0
+  #endif
+#elif defined(__linux__) || defined(__linux)
+  #ifndef SAMPGDK_LINUX
+    #define SAMPGDK_LINUX 1
+  #endif
+  #ifndef SAMPGDK_WINDOWS
+    #define SAMPGDK_WINDOWS 0
+  #endif
+#else
+  #error "Unsupported platform. Only Windows and Linux are supported."
 #endif
 
 #if defined __GNUC__
