@@ -4,7 +4,7 @@
 #include "utils.hpp"
 #include "statics.hpp"
 
-bool cmd_rentveh(int playerid, Cmd cmd) {
+CMD(rentveh) {
   unused(cmd);
 
   char buff[32];

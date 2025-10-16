@@ -2,7 +2,7 @@
 
 #include "utils.hpp"
 
-bool cmd_ssveh(int playerid, Cmd cmd) { 
+CMD(ssveh) { 
   int id;
   float pos[3];
 

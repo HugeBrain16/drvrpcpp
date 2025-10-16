@@ -3,7 +3,7 @@
 #include "player.hpp"
 #include "property.hpp"
 
-bool cmd_lockhouse(int playerid, Cmd cmd) {
+CMD(lockhouse) {
   unused(cmd);
 
   const char *name = RetPname(playerid);

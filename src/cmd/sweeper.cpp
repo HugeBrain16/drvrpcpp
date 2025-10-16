@@ -2,7 +2,7 @@
 
 #include "player.hpp"
 
-bool cmd_sweeper(int playerid, Cmd cmd) {
+CMD(sweeper) {
   unused(cmd);
 
   if (!IsPlayerInSweeper(playerid))

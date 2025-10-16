@@ -21,6 +21,7 @@ if (MINGW)
   add_compile_options(-Wno-maybe-uninitialized)
 endif()
 add_definitions(-DSAMPGDK_AMALGAMATION)
+file(GLOB CMD_SOURCES CONFIGURE_DEPENDS "${SRC}/cmd/*.cpp")
 
 add_samp_plugin(drvrp
   ${SRC}/drvrp.cpp
@@ -45,33 +46,7 @@ add_samp_plugin(drvrp
   ${SRC}/lib/cmd.c
   ${SRC}/lib/stuff.cpp
 
-  ${SRC}/cmd/ssveh.cpp
-  ${SRC}/cmd/getmaterials.cpp
-  ${SRC}/cmd/storage.cpp
-  ${SRC}/cmd/rconweapon.cpp
-  ${SRC}/cmd/setskin.cpp
-  ${SRC}/cmd/money.cpp
-  ${SRC}/cmd/tmt.cpp
-  ${SRC}/cmd/beadmin.cpp
-  ${SRC}/cmd/noadmin.cpp
-  ${SRC}/cmd/job.cpp
-  ${SRC}/cmd/me.cpp
-  ${SRC}/cmd/do.cpp
-  ${SRC}/cmd/sweeper.cpp
-  ${SRC}/cmd/engine.cpp
-  ${SRC}/cmd/rentveh.cpp
-  ${SRC}/cmd/lockrv.cpp
-  ${SRC}/cmd/mower.cpp
-  ${SRC}/cmd/createhouse.cpp
-  ${SRC}/cmd/createbiz.cpp
-  ${SRC}/cmd/enter.cpp
-  ${SRC}/cmd/exit.cpp
-  ${SRC}/cmd/buy.cpp
-  ${SRC}/cmd/inventory.cpp
-  ${SRC}/cmd/buyhouse.cpp
-  ${SRC}/cmd/lockhouse.cpp
-  ${SRC}/cmd/saveplayer.cpp
-  ${SRC}/cmd/speedlimit.cpp
+  ${CMD_SOURCES}
 )
 
 set_source_files_properties(${SRC}/lib/streamer.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)

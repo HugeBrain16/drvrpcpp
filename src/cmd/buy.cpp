@@ -2,7 +2,7 @@
 
 #include "property.hpp"
 
-bool cmd_buy(int playerid, Cmd cmd) {
+CMD(buy) {
   unused(cmd);
 
   char invText[256];

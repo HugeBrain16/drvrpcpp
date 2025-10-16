@@ -2,7 +2,7 @@
 
 #include "property.hpp"
 
-bool cmd_enter(int playerid, Cmd cmd) {
+CMD(enter) {
   unused(cmd);
 
   if (IsPlayerInAnyVehicle(playerid))

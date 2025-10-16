@@ -7,7 +7,7 @@
 
 using namespace Plugins::Streamer;
 
-bool cmd_createbiz(int playerid, Cmd cmd) {
+CMD(createbiz) {
   char opt[16];
   int price;
   float pos[3];

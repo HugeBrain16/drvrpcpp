@@ -636,63 +636,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandPerformed(int playerid, const char
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid, const char *cmdtext) {
   Cmd cmd = cmdparse(cmdtext);
-  
-  if (!strcmp(cmd.name, "ssveh")) {
-    return cmd_ssveh(playerid, cmd);
-  } else if (!strcmp(cmd.name, "getmaterials")) {
-    return cmd_getmaterials(playerid, cmd);
-  } else if (!strcmp(cmd.name, "storage")) {
-    return cmd_storage(playerid, cmd);
-  } else if (!strcmp(cmd.name, "rconweapon")) {
-    return cmd_rconweapon(playerid, cmd);
-  } else if (!strcmp(cmd.name, "setskin")) {
-    return cmd_setskin(playerid, cmd);
-  } else if (!strcmp(cmd.name, "money")) {
-    return cmd_money(playerid, cmd);
-  } else if (!strcmp(cmd.name, "tmt")) {
-    return cmd_tmt(playerid, cmd);
-  } else if (!strcmp(cmd.name, "beadmin")) {
-    return cmd_beadmin(playerid, cmd);
-  } else if (!strcmp(cmd.name, "noadmin")) {
-    return cmd_noadmin(playerid, cmd);
-  } else if (!strcmp(cmd.name, "job")) {
-    return cmd_job(playerid, cmd);
-  } else if (!strcmp(cmd.name, "me")) {
-    return cmd_me(playerid, cmd);
-  } else if (!strcmp(cmd.name, "do")) {
-    return cmd_do(playerid, cmd);
-  } else if (!strcmp(cmd.name, "sweeper")) {
-    return cmd_sweeper(playerid, cmd);
-  } else if (!strcmp(cmd.name, "engine") || !strcmp(cmd.name, "e")) {
-    return cmd_engine(playerid, cmd);
-  } else if (!strcmp(cmd.name, "rentveh")) {
-    return cmd_rentveh(playerid, cmd);
-  } else if (!strcmp(cmd.name, "lockrv")) {
-    return cmd_lockrv(playerid, cmd);
-  } else if (!strcmp(cmd.name, "mower")) {
-    return cmd_mower(playerid, cmd);
-  } else if (!strcmp(cmd.name, "createhouse")) {
-    return cmd_createhouse(playerid, cmd);
-  } else if (!strcmp(cmd.name, "createbiz")) {
-    return cmd_createbiz(playerid, cmd);
-  } else if (!strcmp(cmd.name, "enter")) {
-    return cmd_enter(playerid, cmd);
-  } else if (!strcmp(cmd.name, "exit")) {
-    return cmd_exit(playerid, cmd);
-  } else if (!strcmp(cmd.name, "buy")) {
-    return cmd_buy(playerid, cmd);
-  } else if (!strcmp(cmd.name, "inventory") || !strcmp(cmd.name, "inv")) {
-    return cmd_inventory(playerid, cmd);
-  } else if (!strcmp(cmd.name, "buyhouse")) {
-    return cmd_buyhouse(playerid, cmd);
-  } else if (!strcmp(cmd.name, "lockhouse")) {
-    return cmd_lockhouse(playerid, cmd);
-  } else if (!strcmp(cmd.name, "saveplayer")) {
-    return cmd_saveplayer(playerid, cmd);
-  } else if (!strcmp(cmd.name, "speedlimit")) {
-    return cmd_speedlimit(playerid, cmd);
-  }
-  return false;
+  return CommandRegistry::Instance().Execute(playerid, cmd);
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerEnterVehicle(int playerid, int vehicleid, bool ispassenger) {

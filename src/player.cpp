@@ -301,3 +301,11 @@ bool SpeedLimitOn(int playerid) {
   return Player[playerid].DataState.speedlimit > 0;
 }
 
+bool IsPlayerAdmin2(int playerid) {
+  return IsPlayerAdmin(playerid) || Player[playerid].Flag.Admin;
+}
+
+bool IsPlayerHelper(int playerid) {
+  return Player[playerid].Flag.Helper;
+}
+

@@ -7,7 +7,7 @@
 
 using namespace Plugins::Streamer;
 
-bool cmd_buyhouse(int playerid, Cmd cmd) {
+CMD(buyhouse) {
   unused(cmd);
 
   char buff[128];

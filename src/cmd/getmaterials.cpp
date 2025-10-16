@@ -2,7 +2,7 @@
 
 #include "player.hpp"
 
-bool cmd_getmaterials(int playerid, Cmd cmd) {
+CMD(getmaterials) {
   unused(cmd);
 
   if (!IsPlayerInRangeOfPoint(playerid, 1.5, 613.0717f, 1549.8906f, 5.0001f))

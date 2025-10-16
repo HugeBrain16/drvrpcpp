@@ -3,7 +3,7 @@
 #include "player.hpp"
 #include "utils.hpp"
 
-bool cmd_lockrv(int playerid, Cmd cmd) {
+CMD(lockrv) {
   unused(cmd);
 
   float pos[3];

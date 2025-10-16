@@ -2,7 +2,7 @@
 
 #include "property.hpp"
 
-bool cmd_exit(int playerid, Cmd cmd) {
+CMD(exit) {
   unused(cmd);
 
   if (GetPlayerInterior(playerid) == 0 && GetPlayerVirtualWorld(playerid) == 0)

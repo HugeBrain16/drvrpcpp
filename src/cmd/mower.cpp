@@ -2,7 +2,7 @@
 
 #include "player.hpp"
 
-bool cmd_mower(int playerid, Cmd cmd) {
+CMD(mower) {
   unused(cmd);
 
   for (size_t i = 0; i < Mower.size(); i++) {

@@ -1,6 +1,6 @@
 #include "cmd.hpp"
 
-bool cmd_money(int playerid, Cmd cmd) {
+CMD(money) {
   int amount = 0;
 
   if (!IsPlayerAdmin(playerid))

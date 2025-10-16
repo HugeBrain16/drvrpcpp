@@ -7,7 +7,7 @@
 
 using namespace Plugins::Streamer;
 
-bool cmd_createhouse(int playerid, Cmd cmd) {
+CMD(createhouse) {
   int price;
   float pos[3];
   char buff[256];

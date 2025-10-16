@@ -1,6 +1,6 @@
 #include "cmd.hpp"
 
-bool cmd_rconweapon(int playerid, Cmd cmd) {
+CMD(rconweapon) {
   unused(cmd);
 
   if (!IsPlayerAdmin(playerid))

@@ -3,7 +3,7 @@
 #include "property.hpp"
 #include "player.hpp"
 
-bool cmd_storage(int playerid, Cmd cmd) {
+CMD(storage) {
   char opt[8];
   int houseid = GetHouseID(playerid);
   const char *name = RetPname(playerid);

@@ -2,7 +2,7 @@
 
 #include "player.hpp"
 
-bool cmd_saveplayer(int playerid, Cmd cmd) {
+CMD(saveplayer) {
   int target;
 
   if (!IsPlayerAdmin(playerid))

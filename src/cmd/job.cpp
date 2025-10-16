@@ -2,7 +2,7 @@
 
 #include "player.hpp"
 
-bool cmd_job(int playerid, Cmd cmd) {
+CMD(job) {
   char opt[2][16];
 
   if (sscanf(cmd.args, "%s %s", opt[0], opt[1]) == 2) {

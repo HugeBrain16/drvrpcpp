@@ -3,7 +3,7 @@
 #include "player.hpp"
 #include "utils.hpp"
 
-bool cmd_engine(int playerid, Cmd cmd) {
+CMD_ALIAS(engine, "e", "engine") {
   unused(cmd);
 
   int vehicleid = GetPlayerVehicleID(playerid);

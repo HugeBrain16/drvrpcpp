@@ -90,5 +90,7 @@ void HideVehicleIndicator(int playerid);
 void LoadPlayer(int playerid);
 void SavePlayer(int playerid);
 bool SpeedLimitOn(int playerid);
+bool IsPlayerAdmin2(int playerid);
+bool IsPlayerHelper(int playerid);
 
 #endif

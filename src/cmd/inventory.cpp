@@ -2,7 +2,7 @@
 
 #include "player.hpp"
 
-bool cmd_inventory(int playerid, Cmd cmd) {
+CMD_ALIAS(inventory, "inv", "inventory") {
   unused(cmd);
 
   char title[16];

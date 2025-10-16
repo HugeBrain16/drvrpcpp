@@ -2,7 +2,7 @@
 
 #include "player.hpp"
 
-bool cmd_speedlimit(int playerid, Cmd cmd) {
+CMD(speedlimit) {
   float speed;
 
   if (sscanf(cmd.args, "%f", &speed) == 1) {

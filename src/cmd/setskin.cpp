@@ -1,6 +1,6 @@
 #include "cmd.hpp"
 
-bool cmd_setskin(int playerid, Cmd cmd) {
+CMD(setskin) {
   int skinid = 0;
   
   if (!IsPlayerAdmin(playerid))
