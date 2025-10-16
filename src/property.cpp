@@ -135,7 +135,7 @@ bool SaveBusiness(const char *type, int id) {
 }
 
 bool LoadBusiness(const char *type, int id) {
-  char buff[128];
+  char buff[512];
 
   if (!strcmp(type, "store")) {
     sprintf(buff, BIZ_STORE, id);
@@ -323,7 +323,7 @@ void RestockStoreBiz(int id) {
 }
 
 void HouseSlotInfo(int playerid, int target, int slot) {
-  char buff[64];
+  char buff[128];
 
   if (Houses[target].Items[slot].Quant != 0) {
     sprintf(buff, "[Slot: %d]", slot);

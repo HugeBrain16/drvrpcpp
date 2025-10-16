@@ -90,14 +90,14 @@ bool LoadInventory(int playerid) {
 }
 
 void ItemSlotInfo(int playerid, int target, int slot) {
-  char buff[64];
+  char buff[128];
 
   if (Player[target].Inventory[slot].Quant != 0) {
     sprintf(buff, "[Slot: %d]", slot);
     SendClientMessage(playerid, 0xFFFF00, buff);
     sprintf(buff, "%s: %dx", Player[target].Inventory[slot].Item.Name, Player[target].Inventory[slot].Quant);
     SendClientMessage(playerid, 0xFFFF00, buff);
-    sprintf(buff, "Type: %d", static_cast<int>(Player[target].Inventory[slot].Item.Type));
+    sprintf(buff, "Type: %d", (int)(Player[target].Inventory[slot].Item.Type));
     SendClientMessage(playerid, 0xFFFF00, buff);
   } else
     SendClientMessage(playerid, COLOR_INFO, "Slot is empty!");
@@ -170,7 +170,7 @@ T_Item GetEquipped(int playerid) {
 
 char *GetInvText(int playerid) {
   char *invText = (char *)malloc(256 * sizeof(char));
-  char buff[64];
+  char buff[128];
   invText[0] = '\0';
 
   strcat(invText, "Name\tQuantity\n");

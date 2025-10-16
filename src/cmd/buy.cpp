@@ -6,7 +6,7 @@ bool cmd_buy(int playerid, Cmd cmd) {
   unused(cmd);
 
   char invText[256];
-  char buff[64];
+  char buff[128];
   invText[0] = '\0';
 
   strcat(invText, "Name\tPrice\tStock\n");

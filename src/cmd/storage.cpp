@@ -17,7 +17,7 @@ bool cmd_storage(int playerid, Cmd cmd) {
   if (sscanf(cmd.args, "%s", opt) == 1) {
     if (!strcmp(opt, "view")) {
       char invText[2048];
-      char buff[64];
+      char buff[128];
       char title[16];
       invText[0] = '\0';
 
@@ -41,7 +41,7 @@ bool cmd_storage(int playerid, Cmd cmd) {
       return true;
     } else if (!strcmp(opt, "take")) {
       char invText[2048];
-      char buff[64];
+      char buff[128];
       char title[24];
       invText[0] = '\0';
 
