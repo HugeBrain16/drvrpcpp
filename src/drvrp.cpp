@@ -46,7 +46,7 @@ void SAMPGDK_CALL TC_NoExplodingVeh(int timerid, void *data) {
     if (IsVehicleConnected(i)) {
       if (RetVehicleHealth(i) < 250) {
         SetVehicleHealth(i, 260);
-        SetEngine(i, 0);
+        SetEngineState(i, 0);
       }
     }
   }
@@ -85,7 +85,7 @@ void SAMPGDK_CALL TC_AltPlayerUpdate(int timerid, void *data) {
 
         veh = ispv ? &Player[pid].Vehicle[vid] : &StaticVehicle[vehicleid];
 
-        if (EngineOn(vehicleid)) {
+        if (GetEngineState(vehicleid)) {
           float coeff = 0.05f * (vSpeed / 1000);
 
           veh->Fuel = std::max(0.0f, veh->Fuel - coeff);
@@ -110,22 +110,22 @@ void SAMPGDK_CALL TC_AltPlayerUpdate(int timerid, void *data) {
         sprintf(txt, "Speed: ~r~%.0fKm/h", vSpeed);
         if (vSpeed >= (Player[playerid].DataState.speedlimit - 1) && SpeedLimitOn(playerid))
           sprintf(txt, "Speed: ~y~%.0fKm/h", vSpeed);
-        if (!EngineOn(vehicleid))
+        if (!GetEngineState(vehicleid))
           sprintf(txt, "Speed: ~b~%.0fKm/h", vSpeed);
         PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Speed, txt);
 
         sprintf(txt, "Health: ~r~%.2f", vHealth);
-        if (!EngineOn(vehicleid))
+        if (!GetEngineState(vehicleid))
           sprintf(txt, "Health: ~b~%.2f", vHealth);
         PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Health, txt);
 
         sprintf(txt, "Fuel: ~r~%.1f", veh->Fuel);
-        if (!EngineOn(vehicleid))
+        if (!GetEngineState(vehicleid))
           sprintf(txt, "Fuel: ~b~%.1f", veh->Fuel);
         PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Fuel, txt);
 
         sprintf(txt, "Temp: ~r~%.2f", veh->Heat);
-        if (!EngineOn(vehicleid))
+        if (!GetEngineState(vehicleid))
           sprintf(txt, "Temp: ~b~%.1f", veh->Heat);
         PlayerTextDrawSetString(playerid, Player[playerid].VehicleIndicator.Heat, txt);
       }

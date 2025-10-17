@@ -139,17 +139,63 @@ void CancelPlayer(int playerid) {
   SetPlayerPos(playerid, pos[0], pos[1], pos[2]);
 }
 
-bool EngineOn(int vehicleid) {
+bool GetVehicleParam(int vehicleid, VehicleParam param) {
   int x[7];
-
   GetVehicleParamsEx(vehicleid, &x[0], &x[1], &x[2], &x[3], &x[4], &x[5], &x[6]);
-  return x[0] && x[0] != VEHICLE_PARAMS_UNSET;
+
+  return x[param] && x[param] != VEHICLE_PARAMS_UNSET;
 }
 
-bool SetEngine(int vehicleid, int engine) {
+bool SetVehicleParam(int vehicleid, VehicleParam param, int state) {
   int x[7];
   GetVehicleParamsEx(vehicleid, &x[0], &x[1], &x[2], &x[3], &x[4], &x[5], &x[6]);
-  return SetVehicleParamsEx(vehicleid, engine, x[1], x[2], x[3], x[4], x[5], x[6]);
+
+  x[param] = state;
+  return SetVehicleParamsEx(vehicleid, x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
+}
+
+bool ToggleVehicleParam(int vehicleid, VehicleParam param) {
+  int x[7];
+  GetVehicleParamsEx(vehicleid, &x[0], &x[1], &x[2], &x[3], &x[4], &x[5], &x[6]);
+
+  if (x[param] && x[param] != VEHICLE_PARAMS_UNSET)
+    x[param] = 0;
+  else
+    x[param] = 1;
+
+  return SetVehicleParamsEx(vehicleid, x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
+}
+
+bool GetEngineState(int vehicleid) {
+  return GetVehicleParam(vehicleid, VEH_PARAM_ENGINE);
+}
+
+bool GetLightsState(int vehicleid) {
+  return GetVehicleParam(vehicleid, VEH_PARAM_LIGHTS);
+}
+
+bool GetHoodState(int vehicleid) {
+  return GetVehicleParam(vehicleid, VEH_PARAM_HOOD);
+}
+
+bool GetTrunkState(int vehicleid) {
+  return GetVehicleParam(vehicleid, VEH_PARAM_TRUNK);
+}
+
+bool SetEngineState(int vehicleid, int state) {
+  return SetVehicleParam(vehicleid, VEH_PARAM_ENGINE, state);
+}
+
+bool SetLightsState(int vehicleid, int state) {
+  return SetVehicleParam(vehicleid, VEH_PARAM_LIGHTS, state);
+}
+
+bool SetHoodState(int vehicleid, int state) {
+  return SetVehicleParam(vehicleid, VEH_PARAM_HOOD, state);
+}
+
+bool SetTrunkState(int vehicleid, int state) {
+  return SetVehicleParam(vehicleid, VEH_PARAM_TRUNK, state);
 }
 
 const char *GenerateNumberPlate() {
@@ -167,5 +213,39 @@ const char *GenerateNumberPlate() {
   plate[9] = '\0';
 
   return plate;
+}
+
+int GetNearestVehicle(int playerid, float maxdist) {
+  float px, py, pz;
+  GetPlayerPos(playerid, &px, &py, &pz);
+
+  int nearestId = -1;
+  float nearestDist = maxdist;
+
+  for (int x = 0; x < MAX_PLAYERS; x++) {
+    for (int y = 0; y < MAX_PLAYER_VEHICLES; y++) {
+      int vid = Player[x].Vehicle[y].ID;
+      if (vid <= 0) continue;
+
+      float dist = GetVehicleDistanceFromPoint(vid, px, py, pz);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearestId = vid;
+      }
+    }
+  }
+
+  for (int i = 0; i < MAX_VEHICLES; i++) {
+    int vid = StaticVehicle[i].ID;
+    if (vid <= 0) continue;
+
+    float dist = GetVehicleDistanceFromPoint(vid, px, py, pz);
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearestId = vid;
+    }
+  }
+
+  return nearestId;
 }
 

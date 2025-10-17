@@ -31,7 +31,7 @@ CMD_ALIAS(engine, "e", "engine") {
     }
   }
 
-  if (!EngineOn(vehicleid)) {
+  if (!GetEngineState(vehicleid)) {
     if (RetVehicleHealth(vehicleid) <= 260)
       return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Engine is too damaged!");
 
@@ -44,6 +44,12 @@ CMD_ALIAS(engine, "e", "engine") {
         return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Vehicle's battery is dead!");
     }
 
-    return SetEngine(vehicleid, 1);
-  } else return SetEngine(vehicleid, 0);
+    SetEngineState(vehicleid, 1);
+    SetLightsState(vehicleid, 1);
+    return true;
+  } else {
+    SetEngineState(vehicleid, 0);
+    SetLightsState(vehicleid, 0);
+    return true;
+  }
 }
