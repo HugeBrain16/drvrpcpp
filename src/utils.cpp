@@ -9,6 +9,7 @@
 #include "utils.hpp"
 #include "globals.hpp"
 #include "statics.hpp"
+#include "item.hpp"
 
 GRand Random;
 
@@ -247,5 +248,70 @@ int GetNearestVehicle(int playerid, float maxdist) {
   }
 
   return nearestId;
+}
+
+bool ApplyPlayerAnimation(int playerid, const char *animlib, const char *animname, float fDelta, bool loop, bool lockx, bool locky, bool freeze, int time, bool forcesync) {
+    ApplyAnimation(playerid, animlib, "null", fDelta, loop, lockx, locky, freeze, time, forcesync); // Pre-load animation library
+    return ApplyAnimation(playerid, animlib, animname, fDelta, loop, lockx, locky, freeze, time, forcesync);
+}
+
+bool GiveWeaponWithAnim(int playerid, int weaponid, int ammo, const char *animlib, const char *animname, const char *animcrouchname) {
+    GivePlayerWeapon(playerid, weaponid, ammo);
+
+    if (GetPlayerSpecialAction(playerid) == SPECIAL_ACTION_NONE)
+        ApplyPlayerAnimation(playerid, animlib, animname, 4.0, 0, 0, 0, 0, 0, 0);
+    else if (GetPlayerSpecialAction(playerid) == SPECIAL_ACTION_DUCK)
+        ApplyPlayerAnimation(playerid, animlib, animcrouchname, 4.0, 0, 0, 0, 0, 0);
+
+    return true;
+}
+
+void HolsterWeapon(int playerid, T_ItemSlot *slot) {
+  int ammo;
+  int weaponid;
+  unused(weaponid);
+
+  if (slot->Item.Type == ItemType::PISTOL) {
+    GetPlayerWeaponData(playerid, WEAPON_SLOT_PISTOL, &weaponid, &ammo);
+    Player[playerid].DataState.hpistol = ammo;
+    GivePlayerWeapon(playerid, WEAPON_COLT45, -ammo);
+  } else if (slot->Item.Type == ItemType::RIFLE) {
+    GetPlayerWeaponData(playerid, WEAPON_SLOT_LONG_RIFLE, &weaponid, &ammo);
+    Player[playerid].DataState.hrifle = ammo;
+    GivePlayerWeapon(playerid, WEAPON_RIFLE, -ammo);
+  } else if (slot->Item.Type == ItemType::SHOTGUN) {
+    GetPlayerWeaponData(playerid, WEAPON_SLOT_SHOTGUN, &weaponid, &ammo);
+    Player[playerid].DataState.hshotgun = ammo;
+    GivePlayerWeapon(playerid, WEAPON_SHOTGUN, -ammo);
+  }
+}
+
+void UnloadHolstered(int playerid) {
+  struct T_Item item;
+
+  if (Player[playerid].DataState.hpistol > 0) {
+    strcpy(item.Name, "Colt45 Ammo");
+    item.Type = ItemType::PISTOLAMMO;
+    AddItem(playerid, item, Player[playerid].DataState.hpistol);
+    Player[playerid].DataState.hpistol = 0;
+  } else if (Player[playerid].DataState.hrifle > 0) {
+    strcpy(item.Name, "Rifle Ammo");
+    item.Type = ItemType::RIFLEAMMO;
+    AddItem(playerid, item, Player[playerid].DataState.hrifle);
+    Player[playerid].DataState.hrifle = 0;
+  } else if (Player[playerid].DataState.hshotgun > 0) {
+    strcpy(item.Name, "Shotgun Ammo");
+    item.Type = ItemType::SHOTGUNAMMO;
+    AddItem(playerid, item, Player[playerid].DataState.hshotgun);
+    Player[playerid].DataState.hshotgun = 0;
+  }
+}
+
+void HolsterEquipped(int playerid) {
+  int equipped = GetEquippedSlot(playerid);
+  if (equipped > -1) {
+    HolsterWeapon(playerid, &Player[playerid].Inventory[equipped]);
+    Player[playerid].Inventory[equipped].Item.Equipped = false;
+  }
 }
 

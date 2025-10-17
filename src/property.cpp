@@ -241,14 +241,16 @@ void ResetHouseItem(int id) {
 
 bool AddHouseItem(int id, T_Item item, int quant) {
   for (int i = 0; i < 8; i++) {
-    if (Houses[id].Items[i].Quant == 0 || !IsStackable(item)) {
-      strcpy(Houses[id].Items[i].Item.Name, item.Name);
-      Houses[id].Items[i].Item.Type = item.Type;
-      Houses[id].Items[i].Quant = quant;
-      Houses[id].Items[i].Item.Durability = item.Durability;
+    struct T_ItemSlot *slot = &Houses[id].Items[i];
+
+    if (slot->Quant == 0) {
+      strcpy(slot->Item.Name, item.Name);
+      slot->Item.Type = item.Type;
+      slot->Quant = quant;
+      slot->Item.Durability = item.Durability;
       break;
-    } else if (!strcmp(Houses[id].Items[i].Item.Name, item.Name) && Houses[id].Items[i].Item.Type == item.Type) {
-      Houses[id].Items[i].Quant += quant;
+    } else if (IsStackable(item) && !strcmp(slot->Item.Name, item.Name) && slot->Item.Type == item.Type) {
+      slot->Quant += quant;
       break;
     }
   }
@@ -260,14 +262,16 @@ bool AddHouseItem(int id, T_Item item, int quant) {
 bool AddBizItem(const char *type, int id, T_Item item, int quant) {
   if (!strcmp(type, "store")) {
     for (int i = 0; i < 8; i++) {
-      if (Stores[id].Items[i].Quant == 0) {
-        strcpy(Stores[id].Items[i].Item.Name, item.Name);
-        Stores[id].Items[i].Item.Type = item.Type;
-        Stores[id].Items[i].Item.Price = item.Price;
-        Stores[id].Items[i].Quant = quant;
+      struct T_ItemSlot *slot = &Stores[id].Items[i];
+
+      if (slot->Quant == 0) {
+        strcpy(slot->Item.Name, item.Name);
+        slot->Item.Type = item.Type;
+        slot->Item.Price = item.Price;
+        slot->Quant = quant;
         break;
-      } else if (!strcmp(Stores[id].Items[i].Item.Name, item.Name) && Stores[id].Items[i].Item.Type == item.Type) {
-        Stores[id].Items[i].Quant += quant;
+      } else if (!strcmp(slot->Item.Name, item.Name) && slot->Item.Type == item.Type) {
+        slot->Quant += quant;
         break;
       }
     }

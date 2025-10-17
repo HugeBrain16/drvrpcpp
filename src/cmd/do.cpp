@@ -3,7 +3,7 @@
 #include "player.hpp"
 #include "utils.hpp"
 
-CMD(cmd_do) {
+CMD(do) {
   char txt[256], msg[512];
   const char *name = RetPname(playerid);
 

@@ -83,7 +83,7 @@ bool LoadInventory(int playerid) {
     strcpy(Player[playerid].Inventory[i].Item.Name, ini[buff]["name"].c_str());
     Player[playerid].Inventory[i].Item.Type = static_cast<ItemType>(std::stoi(ini[buff]["type"]));
     Player[playerid].Inventory[i].Quant = std::stoi(ini[buff]["quant"]);
-    Player[playerid].Inventory[i].Item.Equipped = (bool)std::stoi(ini[buff]["equipped"]);
+    // Player[playerid].Inventory[i].Item.Equipped = (bool)std::stoi(ini[buff]["equipped"]);
     Player[playerid].Inventory[i].Item.Durability = std::stoi(ini[buff]["durability"]);
   }
   return true;
@@ -130,14 +130,16 @@ void ResetItem(int playerid) {
 
 bool AddItem(int playerid, T_Item item, int quant) {
   for (int i = 0; i < 8; i++) {
-    if (Player[playerid].Inventory[i].Quant == 0 || !IsStackable(item)) {
-      strcpy(Player[playerid].Inventory[i].Item.Name, item.Name);
-      Player[playerid].Inventory[i].Item.Type = item.Type;
-      Player[playerid].Inventory[i].Quant = quant;
-      Player[playerid].Inventory[i].Item.Durability = item.Durability;
+    struct T_ItemSlot *slot = &Player[playerid].Inventory[i];
+    
+    if (slot->Quant == 0) {
+      strcpy(slot->Item.Name, item.Name);
+      slot->Item.Type = item.Type;
+      slot->Quant = quant;
+      slot->Item.Durability = item.Durability;
       break;
-    } else if (!strcmp(Player[playerid].Inventory[i].Item.Name, item.Name) && Player[playerid].Inventory[i].Item.Type == item.Type) {
-      Player[playerid].Inventory[i].Quant += quant;
+    } else if (IsStackable(item) && !strcmp(slot->Item.Name, item.Name) && slot->Item.Type == item.Type) {
+      slot->Quant += quant;
       break;
     }
   }
@@ -171,12 +173,19 @@ T_Item GetEquipped(int playerid) {
 char *GetInvText(int playerid) {
   char *invText = (char *)malloc(256 * sizeof(char));
   char buff[128];
+  struct T_ItemSlot *slot;
   invText[0] = '\0';
 
   strcat(invText, "Name\tQuantity\n");
   for (int i = 0; i < GetItemCount(playerid); i++) {
-    if (Player[playerid].Inventory[i].Quant > 0)
-      sprintf(buff, "%s\t%dx\n", Player[playerid].Inventory[i].Item.Name, Player[playerid].Inventory[i].Quant);
+    slot = &Player[playerid].Inventory[i];
+
+    if (slot->Quant > 0) {
+      if (slot->Item.Equipped)
+          sprintf(buff, "[E] %s (%d%%)\t%dx\n", slot->Item.Name, slot->Item.Durability, slot->Quant);
+      else
+          sprintf(buff, "%s\t%dx\n", slot->Item.Name, slot->Quant);
+    }
     strcat(invText, buff);
   }
 
@@ -307,5 +316,23 @@ bool IsPlayerAdmin2(int playerid) {
 
 bool IsPlayerHelper(int playerid) {
   return Player[playerid].Flag.Helper;
+}
+
+int GetEquippedSlot(int playerid) {
+  for (int i = 0; i < 8; i++) {
+    if (Player[playerid].Inventory[i].Item.Equipped)
+      return i;
+  }
+
+  return -1;
+}
+
+int GetItemSlot(int playerid, ItemType type) {
+  for (int i = 0; i < 8; i++) {
+    if (Player[playerid].Inventory[i].Item.Type == type)
+      return i;
+  }
+
+  return -1;
 }
 

@@ -24,6 +24,9 @@ struct T_DataState {
   int housetake = -1;
   int housestore = -1;
   float speedlimit = -1;
+  int hpistol = 0;
+  int hshotgun = 0;
+  int hrifle = 0;
 };
 
 struct T_PlayerFlag {
@@ -92,5 +95,7 @@ void SavePlayer(int playerid);
 bool SpeedLimitOn(int playerid);
 bool IsPlayerAdmin2(int playerid);
 bool IsPlayerHelper(int playerid);
+int GetEquippedSlot(int playerid);
+int GetItemSlot(int playerid, ItemType type);
 
 #endif

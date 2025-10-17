@@ -12,3 +12,16 @@ bool IsStackable(T_Item item) {
     return true;
   }
 }
+
+bool IsItemGun(T_Item item) {
+  switch (item.Type) {
+  case ItemType::PISTOL:
+    return true;
+  case ItemType::RIFLE:
+    return true;
+  case ItemType::SHOTGUN:
+    return true;
+  default:
+    return false;
+  }
+}

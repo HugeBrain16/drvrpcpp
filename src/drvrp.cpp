@@ -322,6 +322,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
   SendClientMessageToAll(0xFFFF00AA, msgBuff);
 
   if (!Player[playerid].Flag.FirstSpawn) {
+    HolsterEquipped(playerid);
+    UnloadHolstered(playerid);
     SavePlayer(playerid);
     SaveInventory(playerid);
 
@@ -337,6 +339,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
 PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDeath(int playerid, int killerid, int reason) {
   unused(killerid, reason);
 
+  HolsterEquipped(playerid);
   Player[playerid].Flag.Dead = true;
   return true;
 }
@@ -486,76 +489,116 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
 
   switch (dialogid) {
   case DIALOG_HOUSE_STORAGE_TAKE: {
-    Player[playerid].DataState.housetake = listitem;
-    ShowPlayerDialog(playerid, DIALOG_HOUSE_STORAGE_TAKE_AMOUNT,
-                     DIALOG_STYLE_INPUT, "Storage - Take - Amount",
-                     "Enter the amount of item(s) to take:", "Confirm",
-                     "Cancel");
+    if (response) {
+      Player[playerid].DataState.housetake = listitem;
+      ShowPlayerDialog(playerid, DIALOG_HOUSE_STORAGE_TAKE_AMOUNT, DIALOG_STYLE_INPUT, "Storage - Take - Amount", "Enter the amount of item(s) to take:", "Confirm", "Cancel");
+    }
     break;
   }
   case DIALOG_HOUSE_STORAGE_STORE: {
-    Player[playerid].DataState.housestore = listitem;
-    ShowPlayerDialog(playerid, DIALOG_HOUSE_STORAGE_STORE_AMOUNT, DIALOG_STYLE_INPUT, "Storage - Store - Amount", "Enter the amount of item(s) to store:", "Confirm", "Cancel");
+    if (response) {
+      Player[playerid].DataState.housestore = listitem;
+      ShowPlayerDialog(playerid, DIALOG_HOUSE_STORAGE_STORE_AMOUNT, DIALOG_STYLE_INPUT, "Storage - Store - Amount", "Enter the amount of item(s) to store:", "Confirm", "Cancel");
+    }
     break;
   }
   case DIALOG_HOUSE_STORAGE_TAKE_AMOUNT: {
-    int slotid = Player[playerid].DataState.housetake;
-    int houseid = GetHouseID(playerid);
-    struct T_Item item = Houses[houseid].Items[slotid].Item;
-    Player[playerid].DataState.housetake = -1;
+    if (response) {
+      int slotid = Player[playerid].DataState.housetake;
+      int houseid = GetHouseID(playerid);
+      struct T_ItemSlot *slot = &Houses[houseid].Items[slotid];
+      Player[playerid].DataState.housetake = -1;
 
-    if (canint(inputtext)) {
-      int amount = std::stoi(inputtext);
+      if (canint(inputtext)) {
+        int amount = std::stoi(inputtext);
 
-      if (Houses[houseid].Items[slotid].Quant < amount) {
-        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Insufficient amount!");
+        if (slot->Quant < amount) {
+          return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Insufficient amount!");
+          break;
+        }
+
+        AddItem(playerid, slot->Item, amount);
+        AddHouseItem(houseid, slot->Item, -amount);
+        break;
+      } else {
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: The amount has to be numeric!");
         break;
       }
-
-      AddItem(playerid, item, amount);
-      AddHouseItem(houseid, item, -amount);
-      break;
-    } else {
-      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: The amount has to be numeric!");
-      break;
     }
+    break;
   }
   case DIALOG_HOUSE_STORAGE_STORE_AMOUNT: {
-    int slotid = Player[playerid].DataState.housestore;
-    int houseid = GetHouseID(playerid);
-    struct T_Item item = Player[playerid].Inventory[slotid].Item;
-    Player[playerid].DataState.housestore = -1;
+    if (response) {
+      int slotid = Player[playerid].DataState.housestore;
+      int houseid = GetHouseID(playerid);
+      struct T_ItemSlot *slot = &Player[playerid].Inventory[slotid];
+      Player[playerid].DataState.housestore = -1;
 
-    if (canint(inputtext)) {
-      int amount = std::stoi(inputtext);
+      if (canint(inputtext)) {
+        int amount = std::stoi(inputtext);
 
-      if (Player[playerid].Inventory[slotid].Quant < amount) {
-        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Insufficient amount!");
+        if (slot->Quant < amount) {
+          return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Insufficient amount!");
+          break;
+        }
+
+        HolsterEquipped(playerid);
+        UnloadHolstered(playerid);
+        AddHouseItem(houseid, slot->Item, amount);
+        AddItem(playerid, slot->Item, -amount);
+        break;
+      } else {
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: The amount has to be numeric!");
         break;
       }
-
-      AddHouseItem(houseid, item, amount);
-      AddItem(playerid, item, -amount);
-      break;
-    } else {
-      return SendClientMessage(playerid, COLOR_ERROR, "ERROR: The amount has to be numeric!");
-      break;
     }
+    break;
   }
   case DIALOG_STORE: {
-    for (int i = 0; i < MAX_BUSINESSES; i++) {
-      if (GetPlayerVirtualWorld(playerid) == Stores[i].World) {
-        if (GetPlayerMoney(playerid) < Stores[i].Items[listitem].Item.Price)
-          return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Not enough money!");
+    if (response) {
+      for (int i = 0; i < MAX_BUSINESSES; i++) {
+        if (GetPlayerVirtualWorld(playerid) == Stores[i].World) {
+          if (GetPlayerMoney(playerid) < Stores[i].Items[listitem].Item.Price)
+            return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Not enough money!");
 
-        AddItem(playerid, Stores[i].Items[listitem].Item, 1);
-        AddBizItem("store", playerid, Stores[i].Items[listitem].Item, -1);
-        GivePlayerMoney(playerid, -Stores[i].Items[listitem].Item.Price);
+          AddItem(playerid, Stores[i].Items[listitem].Item, 1);
+          AddBizItem("store", playerid, Stores[i].Items[listitem].Item, -1);
+          GivePlayerMoney(playerid, -Stores[i].Items[listitem].Item.Price);
+        }
       }
     }
     break;
   }
   case DIALOG_INVENTORY: {
+    if (response) {
+      int equipped = GetEquippedSlot(playerid);
+      struct T_ItemSlot *slot;
+      slot = &Player[playerid].Inventory[listitem];
+
+      if (IsItemGun(slot->Item) && !slot->Item.Equipped) {
+        if (equipped > -1) {
+          struct T_ItemSlot *last;
+          last = &Player[playerid].Inventory[equipped];
+          last->Item.Equipped = false;
+          HolsterWeapon(playerid, last);
+        }
+
+        slot->Item.Equipped = true;
+        if (slot->Item.Type == ItemType::PISTOL && Player[playerid].DataState.hpistol > 0) {
+          GiveWeaponWithAnim(playerid, WEAPON_COLT45, Player[playerid].DataState.hpistol, "COLT45", "COLT45_RELOAD", "COLT45_CROUCHRELOAD");
+          Player[playerid].DataState.hpistol = 0;
+        } else if (slot->Item.Type == ItemType::RIFLE && Player[playerid].DataState.hrifle > 0) {
+          GiveWeaponWithAnim(playerid, WEAPON_RIFLE, Player[playerid].DataState.hrifle, "RIFLE", "RIFLE_LOAD", "RIFLE_CROUCHRLOAD");
+          Player[playerid].DataState.hrifle = 0;
+        } else if (slot->Item.Type == ItemType::SHOTGUN && Player[playerid].DataState.hshotgun > 0) {
+          GiveWeaponWithAnim(playerid, WEAPON_SHOTGUN, Player[playerid].DataState.hpistol, "SHOTGUN", "SHOTGUN_FIRE_POOR", "SHOTGUN_FIRE_POOR");
+          Player[playerid].DataState.hshotgun = 0;
+        }
+      } else {
+        slot->Item.Equipped = false;
+        HolsterWeapon(playerid, slot);
+      }
+    }
     break;
   }
   case DIALOG_LOGIN: {
@@ -629,7 +672,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandPerformed(int playerid, const char
   unused(cmdtext);
 
   if (!success)
-    SendClientMessage(playerid, COLOR_ERROR, "ERROR: Unknown command, type /help or ask in /qna.");
+    return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Unknown command, type /help or ask in /qna.");
 
   return 1;
 }

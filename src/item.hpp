@@ -7,9 +7,13 @@ enum class ItemType {
   BREAD,
   WATER,
   MATERIAL,
+
   PISTOL,
   RIFLE,
-  SHOTGUN
+  SHOTGUN,
+  PISTOLAMMO,
+  RIFLEAMMO,
+  SHOTGUNAMMO
 };
 
 struct T_Item {
@@ -26,5 +30,6 @@ struct T_ItemSlot {
 };
 
 bool IsStackable(T_Item item);
+bool IsItemGun(T_Item item);
 
 #endif
