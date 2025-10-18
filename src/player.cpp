@@ -138,7 +138,7 @@ bool AddItem(int playerid, T_Item item, int quant) {
       slot->Quant = quant;
       slot->Item.Durability = item.Durability;
       break;
-    } else if (IsStackable(item) && !strcmp(slot->Item.Name, item.Name) && slot->Item.Type == item.Type) {
+    } else if ((IsStackable(item) || (!IsStackable(item) && quant < 0)) && !strcmp(slot->Item.Name, item.Name) && slot->Item.Type == item.Type) {
       slot->Quant += quant;
       break;
     }
