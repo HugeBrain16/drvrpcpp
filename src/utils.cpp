@@ -315,3 +315,31 @@ void HolsterEquipped(int playerid) {
   }
 }
 
+float GetPlayerDistanceFromPlayer(int playerid, int targetid) {
+  float x[3];
+  GetPlayerPos(targetid, &x[0], &x[1], &x[2]);
+
+  return GetPlayerDistanceFromPoint(playerid, x[0], x[1], x[2]);
+}
+
+bool PlayersInSameUniverse(int playerid, int targetid) {
+  int pi, pw, ti, tw;
+  pi = GetPlayerInterior(playerid);
+  pw = GetPlayerVirtualWorld(playerid);
+  ti = GetPlayerInterior(targetid);
+  tw = GetPlayerVirtualWorld(targetid);
+
+  return pi == ti && pw == tw;
+}
+
+void GiveReset(int playerid) {
+    Player[playerid].DataState.giverid = -1;
+    Player[playerid].DataState.giveamount = 0;
+    Player[playerid].DataState.giveitem = nullptr;
+    Player[playerid].Flag.AcceptGive = false;
+
+    int timerid = Player[playerid].DataState.givetimer;
+    if (timerid > -1)
+        KillTimer(timerid);
+}
+

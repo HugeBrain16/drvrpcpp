@@ -70,5 +70,8 @@ bool GiveWeaponWithAnim(int playerid, int weaponid, int ammo, const char *animli
 void HolsterWeapon(int playerid, T_ItemSlot *slot);
 void UnloadHolstered(int playerid);
 void HolsterEquipped(int playerid);
+float GetPlayerDistanceFromPlayer(int playerid, int targetid);
+bool PlayersInSameUniverse(int playerid, int targetid);
+void GiveReset(int playerid);
 
 #endif

@@ -23,6 +23,28 @@
 
 using namespace Plugins::Streamer;
 
+void SAMPGDK_CALL TC_GiveTimeout(int timerid, void *data) {
+  unused(timerid);
+
+  int playerid = (int)data;
+  int giverid = Player[playerid].DataState.giverid;
+
+  if (IsPlayerConnected(playerid) && IsPlayerConnected(giverid)) {
+    SendClientMessage(playerid, COLOR_ERROR, "You didn't accept item in time");
+
+    char msg[128];
+    const char *name = RetPname(playerid);
+    sprintf(msg, "%s didn't accept in time", name);
+    SendClientMessage(giverid, COLOR_ERROR, msg);
+
+    Player[playerid].Flag.AcceptGive = false;
+    Player[playerid].DataState.giverid = -1;
+    Player[playerid].DataState.giveamount = 0;
+    Player[playerid].DataState.giveitem = nullptr;
+    Player[giverid].DataState.givetarget = -1;
+  }
+}
+
 void SAMPGDK_CALL TC_UpdateRentTime(int timerid, void *data) {
   unused(timerid, data);
 
@@ -333,6 +355,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
       }
     }
   }
+
+  Player[playerid] = T_Player{};
   return true;
 }
 
@@ -488,6 +512,52 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
   const char *name = RetPname(playerid);
 
   switch (dialogid) {
+  case DIALOG_GIVE: {
+    if (response) {
+      Player[playerid].DataState.giveslot = listitem;
+      ShowPlayerDialog(playerid, DIALOG_GIVE_AMOUNT, DIALOG_STYLE_INPUT, "Give - Amount", "Enter the amount of item(s) to give:", "Confirm", "Cancel");
+    }
+    break;
+  }
+  case DIALOG_GIVE_AMOUNT: {
+    if (response) {
+      int target = Player[playerid].DataState.givetarget;
+      int slotid = Player[playerid].DataState.giveslot;
+      struct T_ItemSlot *slot = &Player[playerid].Inventory[slotid];
+
+      if (canint(inputtext)) {
+        int amount = std::stoi(inputtext);
+
+        if (slot->Quant < amount) {
+          return SendClientMessage(playerid, COLOR_ERROR, "ERROR: Insufficient amount!");
+          break;
+        }
+        if (!IsPlayerConnected(target)) {
+          SendClientMessage(playerid, COLOR_ERROR, "ERROR: Player you're trying to give item to is no longer connected");
+          break;
+        }
+        if (GetPlayerDistanceFromPlayer(playerid, target) > 2.0f || !PlayersInSameUniverse(playerid, target)) {
+          SendClientMessage(playerid, COLOR_ERROR, "Error: Player is too far away");
+          break;
+        }
+
+        Player[target].DataState.giverid = playerid;
+        Player[target].DataState.giveitem = &slot->Item;
+        Player[target].DataState.giveamount = amount;
+        Player[target].DataState.givetimer = SetTimer(15000, false, TC_GiveTimeout, (void *)target);
+        Player[target].Flag.AcceptGive = true;
+
+        char msg[256];
+        sprintf(msg, "%s is trying to give you [%s %dx]\nYou have 15 seconds to type '/accept give' to accept the item", name, slot->Item.Name, amount);
+        SendClientMessage(target, COLOR_INFO, msg);
+        SendClientMessage(playerid, COLOR_INFO, "You have 15 seconds to type '/cancel give' to cancle give");
+      } else {
+        return SendClientMessage(playerid, COLOR_ERROR, "ERROR: The amount has to be numeric!");
+        break;
+      }
+    }
+    break;
+  }
   case DIALOG_HOUSE_STORAGE_TAKE: {
     if (response) {
       Player[playerid].DataState.housetake = listitem;
@@ -507,7 +577,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
       int slotid = Player[playerid].DataState.housetake;
       int houseid = GetHouseID(playerid);
       struct T_ItemSlot *slot = &Houses[houseid].Items[slotid];
-      Player[playerid].DataState.housetake = -1;
 
       if (canint(inputtext)) {
         int amount = std::stoi(inputtext);
@@ -532,7 +601,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
       int slotid = Player[playerid].DataState.housestore;
       int houseid = GetHouseID(playerid);
       struct T_ItemSlot *slot = &Player[playerid].Inventory[slotid];
-      Player[playerid].DataState.housestore = -1;
 
       if (canint(inputtext)) {
         int amount = std::stoi(inputtext);
@@ -571,6 +639,11 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnDialogResponse(int playerid, int dialogid, int 
   }
   case DIALOG_INVENTORY: {
     if (response) {
+      if (Player[playerid].DataState.givetarget > -1) {
+        SendClientMessage(playerid, COLOR_ERROR, "ERROR: Cannot use inventory while in the process of giving items");
+        break;
+      }
+
       int equipped = GetEquippedSlot(playerid);
       struct T_ItemSlot *slot;
       slot = &Player[playerid].Inventory[listitem];

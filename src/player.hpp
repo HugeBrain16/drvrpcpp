@@ -27,6 +27,12 @@ struct T_DataState {
   int hpistol = 0;
   int hshotgun = 0;
   int hrifle = 0;
+  int giveslot = -1;
+  int givetarget = -1;
+  int giverid = -1;
+  int giveamount = 0;
+  struct T_Item *giveitem;
+  int givetimer = -1;
 };
 
 struct T_PlayerFlag {
@@ -36,6 +42,7 @@ struct T_PlayerFlag {
   bool NewAccount;
   bool FirstSpawn;
   bool Dead;
+  bool AcceptGive;
 };
 
 struct T_PlayerJob {
